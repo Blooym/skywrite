@@ -4,9 +4,9 @@ A minimal Bluesky RSS feed subscriber/posting bot.
 
 ## Features
 
-- Follow multiple feeds and post to the same account..
+- Follow multiple feeds and post to the same account.
 - Customizable post backdate fetching support (e.g. 3 hours in the past from
-  startup)
+  startup).
 - Duplicate detection via URL.
 - Link embedding support.
 
@@ -14,12 +14,18 @@ A minimal Bluesky RSS feed subscriber/posting bot.
 
 ### Docker
 
-_(This guide will be improved on)_
+1. Clone the repository
 
-The recommended way to run this project is via the provided Dockerfile. Simply
-copy `.env.example` to `.env` and fill in the values. Next, run the Dockerfile
-and make sure to make a volume at `/opt/bsky-rss-poster/data` to ensure all
-long-term data can be stored across restarts.
+```
+git clone https://github.com/Blooym/bsky-rss-bot.git
+```
+
+2. Modify `docker-compose.yml` and fill in the environment variables.
+3. Build & start the container
+
+```
+docker compose up -d
+```
 
 ### Manual
 

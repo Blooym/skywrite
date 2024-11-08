@@ -1,0 +1,15 @@
+services:
+  bsky-rss-bot:
+    build: .
+    restart: unless-stopped
+    environment:
+      - SERVICE=
+      - IDENTIFIER=
+      - APP_PASSWORD=
+      - FEED_URLS=
+      - FEED_FETCH_BACKDATE_HOURS=
+    volumes:
+      - bsky-rss-bot-data:/opt/bsky-rss-bot/data
+
+volumes:
+  bsky-rss-bot-data:
