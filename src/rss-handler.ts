@@ -15,7 +15,7 @@ export class RSSHandler {
         this.logger.debug(`Initializing for feed ${feed}`);
         this.filterDate = datetime().subtract({
             hour: Config.getFeedBackdateHours(),
-        }).toUTC().toJSDate();
+        }).toJSDate();
         this.feed = feed;
         this.databaseHandler = database;
     }
@@ -34,10 +34,9 @@ export class RSSHandler {
             if (!postUrl) {
                 return false;
             }
-
             return !this.databaseHandler.hasPostedUrl(postUrl);
         });
-        this.filterDate = datetime().toUTC().toJSDate();
+        this.filterDate = datetime().toJSDate();
         return posts;
     }
 }
