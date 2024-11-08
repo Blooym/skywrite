@@ -39,4 +39,17 @@ export class RSSHandler {
         this.filterDate = datetime().toJSDate();
         return posts;
     }
+
+    // Thank you <3
+    // https://github.com/milanmdev/bsky.rss/blob/79f097a657b73d7d692c4f9241c041c4857f75d5/app/utils/rssHandler.ts#L315
+    public static stripHtml(html: string | undefined): string | undefined {
+        if (!html) {
+            return undefined;
+        }
+        return html
+            ?.replace(/<\/?[^>]+(>|$)/g, " ")
+            .replaceAll("&nbsp;", " ")
+            .trim()
+            .replace(/  +/g, " ");
+    }
 }

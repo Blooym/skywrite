@@ -63,8 +63,9 @@ async function main() {
           languages: Config.getPostLanguages(),
           embed: {
             title: post.title?.value ?? postUrl,
-            description: post.description?.value ?? meta.description ??
-              post.content?.value ?? "",
+            description: post.description?.value ??
+              meta.description ??
+              RSSHandler.stripHtml(post.content?.value) ?? "",
             image_buffer: bytes,
             uri: postUrl,
           },
