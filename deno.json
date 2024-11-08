@@ -1,0 +1,14 @@
+{
+  "tasks": {
+    "dev": "deno run --watch main.ts"
+  },
+  "imports": {
+    "sqlite3": "https://deno.land/x/sqlite3@0.12.0/mod.ts",
+    "rss": "jsr:@mikaelporttila/rss@*",
+    "atproto-api": "npm:@atproto/api",
+    "ptera": "https://deno.land/x/ptera@v1.0.2/mod.ts",
+    "ogp-parser": "https://deno.land/x/ogp_parser@v0.1.2/mod.ts",
+    "sharp": "npm:sharp",
+    "node-buffer": "node:buffer"
+  }
+}
