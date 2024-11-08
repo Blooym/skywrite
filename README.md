@@ -1,13 +1,13 @@
 # Bluesky RSS Bot
 
-A minimal Bluesky RSS feed subscriber/posting bot.
+A simple RSS feed subscriber -> Bluesky post bot.
 
 ## Features
 
 - Follow multiple feeds and post to the same account.
-- Customizable post backdate fetching & posting.
-- Duplicate detection via URL.
-- Link embedding with images.
+- Posts automatically backdated and fetched X hours from before bot startup.
+- Duplicate post detection via URL stored in persistent database.
+- Link embedding with image support.
 
 ## Setup
 
