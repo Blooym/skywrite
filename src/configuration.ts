@@ -35,7 +35,7 @@ export default class Config {
     }
 
     public static getFeedBackdateHours(): number {
-        const env = Deno.env.get("FEED_FETCH_BACKDATE_HOURS=");
+        const env = Deno.env.get("FEED_FETCH_BACKDATE_HOURS");
         if (!env) {
             return 3;
         }
