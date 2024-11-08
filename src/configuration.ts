@@ -3,17 +3,17 @@ export default class Config {
     public static readonly DATABASE_PATH = "./data/posts.sqlite3";
 
     public static getService(): string {
-        const env = Deno.env.get("SERVICE");
+        const env = Deno.env.get("APP_SERVICE");
         if (!env) {
-            throw new Error("SERVICE not set");
+            throw new Error("APP_SERVICE not set");
         }
         return env;
     }
 
     public static getIdentifier(): string {
-        const env = Deno.env.get("IDENTIFIER");
+        const env = Deno.env.get("APP_IDENTIFIER");
         if (!env) {
-            throw new Error("IDENTIFIER not set");
+            throw new Error("APP_IDENTIFIER not set");
         }
         return env;
     }
@@ -27,7 +27,7 @@ export default class Config {
     }
 
     public static getCronIntervalMinutes(): number {
-        const env = Deno.env.get("CRON_INTERVAL_MINUTES");
+        const env = Deno.env.get("RSS_CRON_INTERVAL_MINUTES");
         if (!env) {
             return 5;
         }
@@ -35,7 +35,7 @@ export default class Config {
     }
 
     public static getFeedBackdateHours(): number {
-        const env = Deno.env.get("FEED_FETCH_BACKDATE_HOURS");
+        const env = Deno.env.get("RSS_FEED_FETCH_PAST_HOURS");
         if (!env) {
             return 3;
         }
@@ -43,13 +43,13 @@ export default class Config {
     }
 
     public static getRssFeeds(): string[] {
-        const env = Deno.env.get("FEED_URLS");
+        const env = Deno.env.get("RSS_FEED_URLS");
         if (!env) {
-            throw new Error("FEED_URLS not set");
+            throw new Error("RSS_FEED_URLS not set");
         }
 
         const urls = env.split(",");
-        urls.map((url) => url.trim()).forEach((url, idx) => {
+        urls.forEach((url, idx) => {
             urls[idx] = url.trim();
             try {
                 new URL(url);
@@ -58,5 +58,17 @@ export default class Config {
             }
         });
         return urls;
+    }
+
+    public static getPostLanguages(): string[] | undefined {
+        const env = Deno.env.get("POSTING_LANGUAGES");
+        if (!env) {
+            return undefined;
+        }
+        const langs = env.split(",");
+        langs.forEach((url, idx) => {
+            langs[idx] = url.trim();
+        });
+        return langs;
     }
 }

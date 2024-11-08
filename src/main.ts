@@ -22,27 +22,29 @@ async function main() {
   Config.getRssFeeds().forEach((feed, idx) => {
     const rssHandler = new RSSHandler(feed, idx, database);
 
+    // Run a cron job for every feed.
     logger.info(`[rss-cron-${idx}] Scheduling cron job`);
     Deno.cron(`rss-cron-${idx}`, {
       minute: { every: Config.getCronIntervalMinutes() },
     }, async () => {
       logger.debug(`[rss-cron-${idx}] Running as scheduled`);
-      const rssData = await rssHandler.fetchValidUnposted();
-      if (rssData.length === 0) {
+      const rssPosts = await rssHandler.fetchValidUnposted();
+      if (rssPosts.length === 0) {
         logger.debug(`[rss-cron-${idx}] Nothing to post`);
         return;
       }
 
-      rssData.forEach(async (post) => {
+      // Attempt to post each entry.
+      rssPosts.forEach(async (post) => {
         const postUrl = post.links[0].href;
         if (!postUrl) {
           return;
         }
         logger.debug(`[rss-cron-${idx}] ${postUrl}: Starting post creation`);
 
+        // Fetch opengraph and convert to jpeg if image is available.
         const meta = await parsedMeta(postUrl);
         const image = meta.open_graph.image;
-
         let bytes;
         if (image) {
           logger.debug(
@@ -54,8 +56,11 @@ async function main() {
             .toBuffer();
         }
 
+        // Post to bluesky with backdated date if available, current date if not.
         await bsky.post({
           content: `${post.title?.value} - ${postUrl}`,
+          createdAt: post.published?.toISOString() ?? new Date().toISOString(),
+          languages: Config.getPostLanguages(),
           embed: {
             title: post.title?.value ?? postUrl,
             description: post.description?.value ?? post.content?.value ?? "",
@@ -69,7 +74,10 @@ async function main() {
         );
         database.addPostedUrl(postUrl);
       });
+
+      // Cleanup
       database.removeOldStoredPosts();
+      logger.debug(`[rss-cron-${idx}] Finished cron run`);
     });
   });
 }

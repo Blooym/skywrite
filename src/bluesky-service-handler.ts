@@ -8,6 +8,7 @@ import { Logger } from "./logger.ts";
  */
 export interface IPost {
     content: string;
+    createdAt: string;
     languages?: string[];
     embed?: IEmbedData;
 }
@@ -30,7 +31,7 @@ export class BlueskyServiceHandler {
     private agpAgent: AtpAgent;
 
     public constructor(service: string) {
-        this.Logger.debug("Initializing");
+        this.Logger.debug(`Initializing with service URL ${service}`);
         this.agpAgent = new AtpAgent({
             service: service,
             persistSession: async (_evt, sess?) => {
@@ -152,7 +153,7 @@ export class BlueskyServiceHandler {
             facets: bskyText.facets,
             langs: data.languages,
             embed: bskyEmbed,
-            createdAt: new Date().toISOString(),
+            createdAt: data.createdAt,
         });
         try {
             // Turn off replies. I don't want to handle ever dealing with

@@ -5,10 +5,9 @@ A minimal Bluesky RSS feed subscriber/posting bot.
 ## Features
 
 - Follow multiple feeds and post to the same account.
-- Customizable post backdate fetching support (e.g. 3 hours in the past from
-  startup).
+- Customizable post backdate fetching & posting.
 - Duplicate detection via URL.
-- Link embedding support.
+- Link embedding with images.
 
 ## Setup
 
