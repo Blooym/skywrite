@@ -1,5 +1,6 @@
 import { DateTime, datetime } from "ptera";
 import { parseFeed } from "rss";
+import Config from "./configuration.ts";
 import { DatabaseHandler } from "./database-handler.ts";
 import { Logger } from "./logger.ts";
 
@@ -12,7 +13,9 @@ export class RSSHandler {
     public constructor(feed: string, idx: number, database: DatabaseHandler) {
         this.logger = new Logger(`RSSHandler${idx}`);
         this.logger.debug(`Initializing for feed ${feed}`);
-        this.filterDate = datetime().subtract({ hour: 2 });
+        this.filterDate = datetime().subtract({
+            hour: Config.getFeedBackdateHours(),
+        });
         this.feed = feed;
         this.databaseHandler = database;
     }

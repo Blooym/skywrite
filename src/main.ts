@@ -24,7 +24,7 @@ async function main() {
 
     logger.info(`[rss-cron-${idx}] Scheduling cron job`);
     Deno.cron(`rss-cron-${idx}`, {
-      minute: { every: Config.getCronInterval() },
+      minute: { every: Config.getCronIntervalMinutes() },
     }, async () => {
       logger.debug(`[rss-cron-${idx}] Running as scheduled`);
       const rssData = await rssHandler.fetchValidUnposted();
@@ -57,9 +57,8 @@ async function main() {
         await bsky.post({
           content: `${post.title?.value} - ${postUrl}`,
           embed: {
-            title: post.title?.value ?? "placeholder",
-            description: post.description?.value ?? post.content?.value ??
-              "Fallback",
+            title: post.title?.value ?? postUrl,
+            description: post.description?.value ?? post.content?.value ?? "",
             image_buffer: bytes,
             uri: postUrl,
           },

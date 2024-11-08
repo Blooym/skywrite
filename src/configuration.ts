@@ -26,10 +26,18 @@ export default class Config {
         return env;
     }
 
-    public static getCronInterval(): number {
-        const env = Deno.env.get("CRON_MINUTE_INTERVAL");
+    public static getCronIntervalMinutes(): number {
+        const env = Deno.env.get("CRON_INTERVAL_MINUTES");
         if (!env) {
             return 5;
+        }
+        return parseInt(env);
+    }
+
+    public static getFeedBackdateHours(): number {
+        const env = Deno.env.get("FEED_FETCH_BACKDATE_HOURS=");
+        if (!env) {
+            return 3;
         }
         return parseInt(env);
     }
