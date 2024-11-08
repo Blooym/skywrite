@@ -1,11 +1,11 @@
-import { DateTime, datetime } from "ptera";
+import { datetime } from "ptera";
 import { parseFeed } from "rss";
 import Config from "./configuration.ts";
 import { DatabaseHandler } from "./database-handler.ts";
 import { Logger } from "./logger.ts";
 
 export class RSSHandler {
-    private filterDate: DateTime;
+    private filterDate: Date;
     private readonly feed: string;
     private readonly databaseHandler: DatabaseHandler;
     private readonly logger: Logger;
@@ -15,7 +15,7 @@ export class RSSHandler {
         this.logger.debug(`Initializing for feed ${feed}`);
         this.filterDate = datetime().subtract({
             hour: Config.getFeedBackdateHours(),
-        });
+        }).toUTC().toJSDate();
         this.feed = feed;
         this.databaseHandler = database;
     }
@@ -28,7 +28,7 @@ export class RSSHandler {
         );
         const posts = rssData.entries.filter((post) => {
             return post.published &&
-                post.published > new Date(this.filterDate.toISODate());
+                post.published > this.filterDate;
         }).filter((post) => {
             const postUrl = post.links[0].href;
             if (!postUrl) {
@@ -37,7 +37,7 @@ export class RSSHandler {
 
             return !this.databaseHandler.hasPostedUrl(postUrl);
         });
-        this.filterDate = datetime();
+        this.filterDate = datetime().toUTC().toJSDate();
         return posts;
     }
 }
