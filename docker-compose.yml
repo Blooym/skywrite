@@ -7,6 +7,7 @@ services:
       - IDENTIFIER=
       - APP_PASSWORD=
       - FEED_URLS=
+      - CRON_INTERVAL_MINUTES=
       - FEED_FETCH_BACKDATE_HOURS=
     volumes:
       - bsky-rss-bot-data:/opt/bsky-rss-bot/data
