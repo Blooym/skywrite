@@ -13,6 +13,8 @@ A simple RSS feed subscriber -> Bluesky post bot.
 
 ### Docker
 
+(The docker image will be uploaded in the coming days, for now you will need to build from the local image)
+
 1. Copy the following to a local file named `docker-compose.yml` or add the
    service to your existing stack and fill in the environment variables.
    Information about configuration options can be found in the
