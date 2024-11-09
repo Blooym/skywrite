@@ -1,0 +1,39 @@
+name: "Tests"
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "src/**"
+      - "deno.json"
+      - "deno.lock"
+  pull_request:
+    branches: ["main"]
+    types: [ready_for_review, opened, synchronize]
+    paths:
+      - "src/**"
+      - "deno.json"
+      - "deno.lock"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Deno:
+    name: "Deno"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+        
+      - name: Setup Deno  
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Ensure Project Compiles
+        run: deno compile src/main.ts
