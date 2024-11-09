@@ -3,7 +3,7 @@
   "specifiers": {
     "jsr:@denosaurs/plug@1": "1.0.6",
     "jsr:@maxim-mazurok/sax-ts@1.2.13": "1.2.13",
-    "jsr:@mikaelporttila/rss@*": "1.1.1",
+    "jsr:@mikaelporttila/rss@1.1.1": "1.1.1",
     "jsr:@std/assert@0.217": "0.217.0",
     "jsr:@std/assert@0.221": "0.221.0",
     "jsr:@std/dotenv@*": "0.225.2",
@@ -377,7 +377,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@mikaelporttila/rss@*",
+      "jsr:@mikaelporttila/rss@1.1.1",
       "npm:@atproto/api@*",
       "npm:sharp@*"
     ]
