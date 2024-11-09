@@ -42,6 +42,14 @@ export default class Config {
         return parseInt(env);
     }
 
+    public static getDisablePostComments(): boolean {
+        const env = Deno.env.get("DISABLE_POST_COMMENTS");
+        if (!env) {
+            return true;
+        }
+        return JSON.parse(env);
+    }
+
     public static getRssFeeds(): string[] {
         const env = Deno.env.get("RSS_FEED_URLS");
         if (!env) {

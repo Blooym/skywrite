@@ -155,26 +155,30 @@ export class BlueskyServiceHandler {
             embed: bskyEmbed,
             createdAt: data.createdAt,
         });
-        try {
-            // Turn off replies. I don't want to handle ever dealing with
-            // anything happening in a reply section.
-            this.agpAgent.com.atproto.repo.createRecord({
-                repo: this.agpAgent.session!.did,
-                collection: "app.bsky.feed.threadgate",
-                rkey: new AtUri(post.uri).rkey,
-                record: {
-                    $type: "app.bsky.feed.threadgate",
-                    post: post.uri,
-                    // empty allow-list, nobody can reply
-                    allow: [],
-                    createdAt: new Date().toISOString(),
-                },
-            });
-        } catch {
-            this.Logger.warn(
-                `Failed to set threadgate reply restriction for ${post.uri} - continuing.`,
-            );
+
+        if (Config.getDisablePostComments()) {
+            try {
+                this.Logger.debug(`Disable post comments for ${post.uri}`);
+                // Set a thread gate with nothing allowed to turn off replies.
+                this.agpAgent.com.atproto.repo.createRecord({
+                    repo: this.agpAgent.session!.did,
+                    collection: "app.bsky.feed.threadgate",
+                    rkey: new AtUri(post.uri).rkey,
+                    record: {
+                        $type: "app.bsky.feed.threadgate",
+                        post: post.uri,
+                        // empty allow-list, nobody can reply
+                        allow: [],
+                        createdAt: new Date().toISOString(),
+                    },
+                });
+            } catch {
+                this.Logger.warn(
+                    `Failed to set threadgate reply restriction for ${post.uri} - continuing.`,
+                );
+            }
         }
+
         this.Logger.info(
             `Successfully created post for RSS URI ${data.embed?.uri}: ${post.uri}`,
         );
