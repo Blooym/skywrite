@@ -36,4 +36,4 @@ jobs:
           deno-version: v2.x
 
       - name: Ensure Project Compiles
-        run: deno compile src/main.ts
+        run: deno compile --output build src/main.ts
