@@ -4,7 +4,7 @@ export default class Config {
 
     public static getService(): string {
         const env = Deno.env.get("APP_SERVICE");
-        if (!env) {
+        if (env === undefined) {
             throw new Error("APP_SERVICE not set");
         }
         return env;
@@ -12,7 +12,7 @@ export default class Config {
 
     public static getIdentifier(): string {
         const env = Deno.env.get("APP_IDENTIFIER");
-        if (!env) {
+        if (env === undefined) {
             throw new Error("APP_IDENTIFIER not set");
         }
         return env;
@@ -20,7 +20,7 @@ export default class Config {
 
     public static getAppPassword(): string {
         const env = Deno.env.get("APP_PASSWORD");
-        if (!env) {
+        if (env === undefined) {
             throw new Error("APP_PASSWORD not set");
         }
         return env;
@@ -28,7 +28,7 @@ export default class Config {
 
     public static getCronIntervalMinutes(): number {
         const env = Deno.env.get("RSS_CRON_INTERVAL_MINUTES");
-        if (!env) {
+        if (env === undefined) {
             return 5;
         }
         return parseInt(env);
@@ -36,7 +36,7 @@ export default class Config {
 
     public static getFeedBackdateHours(): number {
         const env = Deno.env.get("RSS_FEED_FETCH_PAST_HOURS");
-        if (!env) {
+        if (env === undefined) {
             return 3;
         }
         return parseInt(env);
@@ -44,7 +44,7 @@ export default class Config {
 
     public static getDisablePostComments(): boolean {
         const env = Deno.env.get("DISABLE_POST_COMMENTS");
-        if (!env) {
+        if (env === undefined) {
             return true;
         }
         return JSON.parse(env);
@@ -52,7 +52,7 @@ export default class Config {
 
     public static getRssFeeds(): string[] {
         const env = Deno.env.get("RSS_FEED_URLS");
-        if (!env) {
+        if (env === undefined) {
             throw new Error("RSS_FEED_URLS not set");
         }
 
@@ -70,7 +70,7 @@ export default class Config {
 
     public static getPostLanguages(): string[] | undefined {
         const env = Deno.env.get("POSTING_LANGUAGES");
-        if (!env) {
+        if (env === undefined) {
             return undefined;
         }
         const langs = env.split(",");
