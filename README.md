@@ -1,5 +1,10 @@
 # Bluesky RSS Bot
 
+> [!IMPORTANT]
+> This project will break release-to-release until stablised! There is no
+> promise of stability or compatibility between versions until v1. You have been
+> warned.
+
 A simple RSS feed subscriber -> Bluesky post bot.
 
 ## Features
