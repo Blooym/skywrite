@@ -5,6 +5,8 @@
 > promise of stability or compatibility between versions until v1. You have been
 > warned.
 
+A simple RSS feed subscriber -> Bluesky post bot.
+
 ## Features
 
 - Posts automatically backdated and fetched X hours from before bot startup.
