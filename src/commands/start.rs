@@ -7,7 +7,7 @@ use clap::Parser;
 use log::info;
 use reqwest::Url;
 use scraper::{Html, Selector};
-use std::{path::PathBuf, primitive, sync::Arc, time::Duration};
+use std::{path::PathBuf, primitive, time::Duration};
 use tokio::time::sleep;
 
 use super::ExecutableCommand;
@@ -94,7 +94,7 @@ pub struct StartCommand {
 
 impl ExecutableCommand for StartCommand {
     async fn run(self) -> Result<()> {
-        let database = Arc::new(Database::new(&self.database_url).await?);
+        let database = Database::new(&self.database_url).await?;
         let bsky_handler = BlueskyHandler::new(
             self.service,
             self.agent_config_path,
@@ -103,11 +103,8 @@ impl ExecutableCommand for StartCommand {
         .await?;
         bsky_handler.login(&self.identifier, &self.password).await?;
 
-        let mut rsshandler = RssHandler::new(
-            self.rss_feed_url,
-            database.clone(),
-            self.feed_backdate_hours,
-        );
+        let mut rsshandler =
+            RssHandler::new(self.rss_feed_url, &database, self.feed_backdate_hours);
 
         let og_description_selector = Selector::parse(r#"meta[property="og:description"]"#)
             .expect("selector expression should be parseable");
