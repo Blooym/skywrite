@@ -2,8 +2,8 @@
 
 > [!IMPORTANT]
 > This project will break release-to-release until stablised! There is no
-> promise of stability or compatibility between versions until v1. If you would
-> like to go ahead anyway please pin to an exact version.
+> promise of stability or compatibility between versions until v1. You have been
+> warned.
 
 ## Features
 
