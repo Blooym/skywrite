@@ -34,21 +34,21 @@ impl RSSHandler {
         let mut new_entries = vec![];
         for item in feed.entries {
             // Only count posts that are after the filter date.
-            if let Some(pub_date) = item.published {
-                if pub_date <= self.filter_date {
-                    continue;
-                }
-            } else {
+            let Some(pub_date) = item.published else {
+                continue;
+            };
+            if pub_date <= self.filter_date {
                 continue;
             }
+
             // Check for duplicate link. No link, no post.
-            if let Some(link) = item.links.first() {
-                if self.database.has_posted_url(&link.href).await? {
-                    continue;
-                }
-            } else {
+            let Some(link) = item.links.first() else {
+                continue;
+            };
+            if self.database.has_posted_url(&link.href).await? {
                 continue;
             }
+
             new_entries.push(item);
         }
         self.filter_date = Utc::now();
