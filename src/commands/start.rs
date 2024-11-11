@@ -1,13 +1,13 @@
 use crate::bsky::{BlueskyHandler, PostData, PostEmbed};
 use crate::database::Database;
-use crate::rss::RSSHandler;
+use crate::rss::RssHandler;
 use anyhow::Result;
 use chrono::DateTime;
 use clap::Parser;
 use log::info;
 use reqwest::Url;
 use scraper::{Html, Selector};
-use std::{path::PathBuf, primitive, sync::Arc, time::Duration};
+use std::{path::PathBuf, primitive, time::Duration};
 use tokio::time::sleep;
 
 use super::ExecutableCommand;
@@ -94,7 +94,7 @@ pub struct StartCommand {
 
 impl ExecutableCommand for StartCommand {
     async fn run(self) -> Result<()> {
-        let database = Arc::new(Database::new(&self.database_url).await?);
+        let database = Database::new(&self.database_url).await?;
         let bsky_handler = BlueskyHandler::new(
             self.service,
             self.agent_config_path,
@@ -103,11 +103,8 @@ impl ExecutableCommand for StartCommand {
         .await?;
         bsky_handler.login(&self.identifier, &self.password).await?;
 
-        let mut rsshandler = RSSHandler::new(
-            self.rss_feed_url,
-            Arc::clone(&database),
-            self.feed_backdate_hours,
-        );
+        let mut rsshandler =
+            RssHandler::new(self.rss_feed_url, &database, self.feed_backdate_hours);
 
         let og_description_selector = Selector::parse(r#"meta[property="og:description"]"#)
             .expect("selector expression should be parseable");
@@ -122,77 +119,67 @@ impl ExecutableCommand for StartCommand {
 
             let posts = rsshandler.fetch_unposted().await?.entries;
             for post in &posts {
-                if let Some(post_link) = post.links.first() {
-                    info!("Running for post '{}'", post_link.href);
-
-                    let page = reqwest::get(&post_link.href).await?.text().await?;
-                    let html = scraper::Html::parse_document(&page);
-
-                    bsky_handler
-                        .post(PostData {
-                            created_at: post.published.unwrap_or(DateTime::default()),
-                            text: format!(
-                                "{} - {}",
-                                post.title
-                                    .clone()
-                                    .map_or(String::from("New post"), |f| f.content),
-                                post_link.href
-                            ),
-                            languages: self.post_languages.clone(),
-                            embed: Some(PostEmbed {
-                                title: post
-                                    .title
-                                    .clone()
-                                    .map_or(post_link.href.clone(), |f| f.content),
-                                description: post
-                                    .summary
-                                    .clone()
-                                    .map_or_else(
-                                        || {
-                                            html.select(&og_description_selector).next().and_then(
-                                                |desc| {
-                                                    desc.value()
-                                                        .attr("content")
-                                                        .map(|a| a.to_string())
-                                                },
-                                            )
-                                        },
-                                        |summary| {
-                                            let frag = Html::parse_fragment(&summary.content);
-                                            let mut sentence = "".to_owned();
-                                            for node in frag.tree {
-                                                if let scraper::node::Node::Text(text) = node {
-                                                    sentence.push_str(&text.text);
-                                                }
-                                            }
-                                            Some(sentence)
-                                        },
-                                    )
-                                    .unwrap_or(String::from(
-                                        "This site has not provided a description",
-                                    )),
-                                thumbnail_url: html.select(&og_image_selector).next().and_then(
-                                    |f| {
-                                        if let Some(a) = f.value().attr("content") {
-                                            if let Ok(url) = Url::parse(a) {
-                                                return Some(url);
-                                            }
-                                            return None;
-                                        }
-                                        None
-                                    },
-                                ),
-                                uri: Url::parse(&post_link.href)?,
-                            }),
-                        })
-                        .await?;
-
-                    database
-                        .add_posted_url(&post.links.first().unwrap().href)
-                        .await?;
-                } else {
+                let Some(post_link) = post.links.first() else {
                     continue;
-                }
+                };
+
+                info!("Running for post '{}'", post_link.href);
+
+                let page = reqwest::get(&post_link.href).await?.text().await?;
+                let html = scraper::Html::parse_document(&page);
+
+                bsky_handler
+                    .post(PostData {
+                        created_at: post.published.unwrap_or(DateTime::default()),
+                        text: format!(
+                            "{} - {}",
+                            post.title
+                                .clone()
+                                .map_or(String::from("New post"), |f| f.content),
+                            post_link.href
+                        ),
+                        languages: self.post_languages.clone(),
+                        embed: Some(PostEmbed {
+                            title: post
+                                .title
+                                .clone()
+                                .map(|f| f.content)
+                                .unwrap_or_else(|| post_link.href.clone()),
+                            description: post
+                                .summary
+                                .clone()
+                                .map(|summary| {
+                                    Html::parse_fragment(&summary.content)
+                                        .tree
+                                        .into_iter()
+                                        .filter_map(|node| {
+                                            node.as_text().map(|text| text.text.to_string())
+                                        })
+                                        .collect::<String>()
+                                })
+                                .or_else(|| {
+                                    html.select(&og_description_selector)
+                                        .next()
+                                        .and_then(|desc| {
+                                            desc.value().attr("content").map(|a| a.to_string())
+                                        })
+                                })
+                                .unwrap_or_else(|| {
+                                    "This site has not provided a description".into()
+                                }),
+                            thumbnail_url: html
+                                .select(&og_image_selector)
+                                .next()
+                                .and_then(|f| f.value().attr("content"))
+                                .and_then(|u| Url::parse(u).ok()),
+                            uri: Url::parse(&post_link.href)?,
+                        }),
+                    })
+                    .await?;
+
+                database
+                    .add_posted_url(&post.links.first().unwrap().href)
+                    .await?;
             }
             database.remove_old_stored_posts().await?;
             info!(

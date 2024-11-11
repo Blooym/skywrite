@@ -50,22 +50,17 @@ impl BlueskyHandler {
         agent_config_path: PathBuf,
         disable_comments: bool,
     ) -> Result<Self> {
-        let agent = BskyAgent::builder()
-            .config(Config {
-                ..Config::load(&FileStore::new(&agent_config_path))
-                    .await
-                    .unwrap_or(Config {
-                        endpoint: service
-                            .to_string()
-                            .strip_suffix("/")
-                            .map_or(service.to_string(), |s| s.to_string()),
-                        ..Default::default()
-                    })
-            })
-            .build()
-            .await?;
+        let config = Config::load(&FileStore::new(&agent_config_path))
+            .await
+            .unwrap_or_else(|_| Config {
+                endpoint: service
+                    .to_string()
+                    .strip_suffix("/")
+                    .map_or(service.to_string(), |s| s.to_string()),
+                ..Default::default()
+            });
         Ok(Self {
-            agent,
+            agent: BskyAgent::builder().config(config).build().await?,
             config_path: agent_config_path,
             disable_comments,
         })

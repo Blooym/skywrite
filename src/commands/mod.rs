@@ -20,7 +20,7 @@ pub struct CommandRoot {
 
 #[derive(Debug, Clone, Parser)]
 enum Commands {
-    Start(StartCommand),
+    Start(Box<StartCommand>),
     Database(DatabaseCommandBase),
 }
 
