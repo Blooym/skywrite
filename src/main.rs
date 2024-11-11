@@ -8,7 +8,7 @@ use chrono::DateTime;
 use clap::Parser;
 use database::Database;
 use dotenvy::dotenv;
-use log::info;
+use log::{debug, info};
 use reqwest::Url;
 use rss::RSSHandler;
 use scraper::{Html, Selector};
@@ -30,45 +30,55 @@ struct Configuration {
     )]
     service: Url,
 
-    #[clap(required = true, long = "app-identity", env = "APP_IDENTITY")]
-    identity: String,
+    /// The username or email of the application's account.
+    #[clap(required = true, long = "app-identifier", env = "APP_IDENTIFIER")]
+    identifier: String,
 
+    /// The app password to use for authentication.
     #[clap(required = true, long = "app-password", env = "APP_PASSWORD")]
     password: String,
 
+    /// The interval of time in seconds between checking for new posts.
     #[clap(
         default_value_t = 300,
-        long = "cron-interval-seconds",
-        env = "CRON_INTERVAL_SECONDS"
+        long = "rerun-interval-seconds",
+        env = "RERUN_INTERVAL_SECONDS"
     )]
     run_interval_seconds: u64,
 
+    /// The number of hours in the past the bot should check for posts that haven't been posted at startup.
+    /// Useful for backdating an account or when an outage occurs.
     #[clap(
         default_value_t = 3,
         long = "feed-backdate-hours",
-        env = "RSS_FEED_FETCH_PAST_HOURS"
+        env = "RSS_FEED_BACKDATE_HOURS"
     )]
     feed_backdate_hours: u16,
 
+    /// Whether Bluesky posts should have comments disabled.
     #[clap(
         default_value_t = true,
-        long = "disable-comments",
-        env = "DISABLE_COMMENTS"
+        long = "disable-post-comments",
+        env = "DISABLE_POST_COMMENTS"
     )]
-    disable_comments: primitive::bool,
+    disable_post_comments: primitive::bool,
 
+    /// A full URL including protocol to an RSS feed.
     #[clap(required = true, long = "rss-feed-url", env = "RSS_FEED_URL")]
     rss_feed_url: Url,
 
+    /// A comma-seperated list of languages in **ISO-639-1** to classify posts under.
+    /// This should corrolate to the language of the posts the feed is linking to.
     #[clap(
         required = true,
         default_value = "en",
         long = "post-languages",
-        env = "POST_LANGUAGES"
+        env = "POST_LANGUAGES",
+        value_delimiter = ','
     )]
     post_languages: Vec<String>,
 
-    // The connection string, path, or URI to the database that should connected to.
+    /// The connection string to use when connecting to the sqlite database.
     /// Supports some connection parameters.
     #[arg(
         long = "database-url",
@@ -77,6 +87,7 @@ struct Configuration {
     )]
     database_url: String,
 
+    /// The location of Atrium's bluesky agent configuration and session persistence file.
     #[arg(
         long = "agent-config-path",
         env = "AGENT_CONFIG_PATH",
@@ -92,11 +103,16 @@ async fn main() -> Result<()> {
         .with_env_filter(EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("info")))
         .init();
     let args = Configuration::parse();
+    debug!("{args:?}");
 
     let database = Arc::new(Database::new(&args.database_url).await?);
-    let bsky_handler =
-        BlueskyHandler::new(args.service, args.agent_config_path, args.disable_comments).await?;
-    bsky_handler.login(&args.identity, &args.password).await?;
+    let bsky_handler = BlueskyHandler::new(
+        args.service,
+        args.agent_config_path,
+        args.disable_post_comments,
+    )
+    .await?;
+    bsky_handler.login(&args.identifier, &args.password).await?;
 
     let mut rsshandler = RSSHandler::new(
         args.rss_feed_url,
