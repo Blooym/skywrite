@@ -28,6 +28,14 @@ impl Database {
         Ok(())
     }
 
+    pub async fn remove_posted_url(&self, url: &str) -> Result<()> {
+        debug!("Removing {url} from posted_urls");
+        query!("DELETE FROM posted_urls WHERE url =? ", url)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
     pub async fn has_posted_url(&self, url: &str) -> Result<bool> {
         debug!("Checking if {url} exists in posted_urls table");
         Ok(query!("SELECT url FROM posted_urls WHERE url = ?", url)

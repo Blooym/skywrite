@@ -1,5 +1,6 @@
 [package]
 name = "bsky-rss-bot"
+description = "A simple RSS feed subscriber -> Bluesky post bot."
 version = "0.1.0"
 edition = "2021"
 
