@@ -7,13 +7,13 @@ use reqwest::Url;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
-pub struct RSSHandler {
+pub struct RssHandler {
     filter_date: chrono::DateTime<Utc>,
     database: Arc<Database>,
     feed: Url,
 }
 
-impl RSSHandler {
+impl RssHandler {
     pub fn new(feed: Url, database: Arc<Database>, feed_backdate_hours: u16) -> Self {
         let filter_date = Utc::now() - Duration::hours(feed_backdate_hours as i64);
         debug!("Initializing RSS handler for {feed} with starting filter date of {filter_date}");

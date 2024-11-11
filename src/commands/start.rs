@@ -1,6 +1,6 @@
 use crate::bsky::{BlueskyHandler, PostData, PostEmbed};
 use crate::database::Database;
-use crate::rss::RSSHandler;
+use crate::rss::RssHandler;
 use anyhow::Result;
 use chrono::DateTime;
 use clap::Parser;
@@ -103,7 +103,7 @@ impl ExecutableCommand for StartCommand {
         .await?;
         bsky_handler.login(&self.identifier, &self.password).await?;
 
-        let mut rsshandler = RSSHandler::new(
+        let mut rsshandler = RssHandler::new(
             self.rss_feed_url,
             database.clone(),
             self.feed_backdate_hours,
