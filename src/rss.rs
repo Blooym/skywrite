@@ -4,16 +4,18 @@ use chrono::{Duration, Utc};
 use feed_rs::model::Feed;
 use log::debug;
 use reqwest::Url;
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[derive(Debug, Clone)]
-pub struct RssHandler<'a> {
+pub struct RssHandler {
     filter_date: chrono::DateTime<Utc>,
-    database: &'a Database,
+    database: Arc<RwLock<Database>>,
     feed: Url,
 }
 
-impl<'a> RssHandler<'a> {
-    pub fn new(feed: Url, database: &'a Database, feed_backdate_hours: u16) -> Self {
+impl RssHandler {
+    pub fn new(feed: Url, database: Arc<RwLock<Database>>, feed_backdate_hours: u16) -> Self {
         let filter_date = Utc::now() - Duration::hours(feed_backdate_hours as i64);
         debug!("Initializing RSS handler for {feed} with starting filter date of {filter_date}");
         Self {
@@ -44,7 +46,13 @@ impl<'a> RssHandler<'a> {
             let Some(link) = item.links.first() else {
                 continue;
             };
-            if self.database.has_posted_url(&link.href).await? {
+            if self
+                .database
+                .read()
+                .await
+                .has_posted_url(&link.href)
+                .await?
+            {
                 continue;
             }
 
