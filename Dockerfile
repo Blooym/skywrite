@@ -32,6 +32,7 @@ RUN cargo build --release
 # Runtime #
 ###########
 FROM scratch
+ENV RUST_BACKTRACE=1
 
 # Import and switch to non-root user.
 COPY --from=user /etc/passwd /etc/passwd
