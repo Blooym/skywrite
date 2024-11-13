@@ -9,7 +9,6 @@ use reqwest::Url;
 use scraper::{Html, Selector};
 use std::sync::Arc;
 use std::{path::PathBuf, primitive, time::Duration};
-use tokio::sync::RwLock;
 use tokio::time::sleep;
 
 use super::ExecutableCommand;
@@ -96,120 +95,128 @@ pub struct StartCommand {
 
 impl ExecutableCommand for StartCommand {
     async fn run(self) -> Result<()> {
-        let database = Arc::new(RwLock::new(Database::new(&self.database_url).await?));
-        let bsky_handler = BlueskyHandler::new(
-            self.service,
-            self.agent_config_path,
-            self.disable_post_comments,
-        )
-        .await?;
+        let database = Arc::new(Database::new(&self.database_url).await?);
+        let bsky_handler = Arc::new(
+            BlueskyHandler::new(
+                self.service,
+                self.agent_config_path,
+                self.disable_post_comments,
+            )
+            .await?,
+        );
         bsky_handler.login(&self.identifier, &self.password).await?;
 
+        let mut handles = vec![];
         for feed in self.rss_feed_urls {
-            let mut rsshandler =
-                RssHandler::new(feed, Arc::clone(&database), self.feed_backdate_hours);
+            let mut rsshandler = RssHandler::new(feed, database.clone(), self.feed_backdate_hours);
             let og_description_selector = Selector::parse(r#"meta[property="og:description"]"#)
                 .expect("selector expression should be parseable");
             let og_image_selector = Selector::parse(r#"meta[property="og:image"]"#)
                 .expect("selector expression should be parseable");
 
-            tokio::spawn(async move {
-                loop {
-                    info!(
-                        "Checking for unposted entries for RSS feed: {}",
-                        rsshandler.get_feed()
-                    );
+            handles.push(tokio::spawn({
+                let database = database.clone();
+                let bsky_handler = bsky_handler.clone();
+                let post_languages = self.post_languages.clone();
+                async move {
+                    loop {
+                        info!(
+                            "Checking for unposted entries for RSS feed: {}",
+                            rsshandler.get_feed()
+                        );
 
-                    let posts = rsshandler.fetch_unposted().await.unwrap().entries;
-                    for post in &posts {
-                        let Some(post_link) = post.links.first() else {
-                            continue;
-                        };
+                        let posts = rsshandler.fetch_unposted().await.unwrap().entries;
+                        for post in &posts {
+                            let Some(post_link) = post.links.first() else {
+                                continue;
+                            };
 
-                        info!("Running for post '{}'", post_link.href);
+                            info!("Running for post '{}'", post_link.href);
 
-                        let page = reqwest::get(&post_link.href)
-                            .await
-                            .unwrap()
-                            .text()
-                            .await
-                            .unwrap();
-                        let html = scraper::Html::parse_document(&page);
+                            let page = reqwest::get(&post_link.href)
+                                .await
+                                .unwrap()
+                                .text()
+                                .await
+                                .unwrap();
 
-                        bsky_handler
-                            .post(PostData {
-                                created_at: post.published.unwrap_or(DateTime::default()),
-                                text: format!(
-                                    "{} - {}",
-                                    post.title
-                                        .clone()
-                                        .map_or(String::from("New post"), |f| f.content),
-                                    post_link.href
-                                ),
-                                languages: self.post_languages.clone(),
-                                embed: Some(PostEmbed {
-                                    title: post
-                                        .title
-                                        .clone()
-                                        .map(|f| f.content)
-                                        .unwrap_or_else(|| post_link.href.clone()),
-                                    description: post
-                                        .summary
-                                        .clone()
-                                        .map(|summary| {
-                                            Html::parse_fragment(&summary.content)
-                                                .tree
-                                                .into_iter()
-                                                .filter_map(|node| {
-                                                    node.as_text().map(|text| text.text.to_string())
-                                                })
-                                                .collect::<String>()
-                                        })
-                                        .or_else(|| {
-                                            html.select(&og_description_selector).next().and_then(
-                                                |desc| {
-                                                    desc.value()
-                                                        .attr("content")
-                                                        .map(|a| a.to_string())
-                                                },
-                                            )
-                                        })
-                                        .unwrap_or_else(|| {
-                                            "This site has not provided a description".into()
-                                        }),
-                                    thumbnail_url: html
-                                        .select(&og_image_selector)
-                                        .next()
-                                        .and_then(|f| f.value().attr("content"))
-                                        .and_then(|u| Url::parse(u).ok()),
-                                    uri: Url::parse(&post_link.href).unwrap(),
-                                }),
-                            })
-                            .await
-                            .unwrap();
+                            // Synchronously obtain data from the HTML, so that we do not carry `html` across an await point
+                            let (description, thumbnail_url) = {
+                                let html = scraper::Html::parse_document(&page);
 
-                        database
-                            .write()
-                            .await
-                            .add_posted_url(&post.links.first().unwrap().href)
-                            .await
-                            .unwrap();
+                                let description = post
+                                    .summary
+                                    .clone()
+                                    .map(|summary| {
+                                        Html::parse_fragment(&summary.content)
+                                            .tree
+                                            .into_iter()
+                                            .filter_map(|node| {
+                                                node.as_text().map(|text| text.text.to_string())
+                                            })
+                                            .collect::<String>()
+                                    })
+                                    .or_else(|| {
+                                        html.select(&og_description_selector).next().and_then(
+                                            |desc| {
+                                                desc.value().attr("content").map(|a| a.to_string())
+                                            },
+                                        )
+                                    })
+                                    .unwrap_or_else(|| {
+                                        "This site has not provided a description".into()
+                                    });
+                                let thumbnail_url = html
+                                    .select(&og_image_selector)
+                                    .next()
+                                    .and_then(|f| f.value().attr("content"))
+                                    .and_then(|u| Url::parse(u).ok());
+                                (description, thumbnail_url)
+                            };
+
+                            bsky_handler
+                                .post(PostData {
+                                    created_at: post.published.unwrap_or(DateTime::default()),
+                                    text: format!(
+                                        "{} - {}",
+                                        post.title
+                                            .clone()
+                                            .map_or(String::from("New post"), |f| f.content),
+                                        post_link.href
+                                    ),
+                                    languages: post_languages.clone(),
+                                    embed: Some(PostEmbed {
+                                        title: post
+                                            .title
+                                            .clone()
+                                            .map(|f| f.content)
+                                            .unwrap_or_else(|| post_link.href.clone()),
+                                        description,
+                                        thumbnail_url,
+                                        uri: Url::parse(&post_link.href).unwrap(),
+                                    }),
+                                })
+                                .await
+                                .unwrap();
+
+                            database
+                                .add_posted_url(&post.links.first().unwrap().href.to_string())
+                                .await
+                                .unwrap();
+                        }
+                        database.remove_old_stored_posts().await.unwrap();
+                        info!(
+                            "Now waiting for {} seconds before re-running",
+                            self.run_interval_seconds
+                        );
+                        sleep(Duration::from_secs(self.run_interval_seconds)).await;
                     }
-                    database
-                        .write()
-                        .await
-                        .remove_old_stored_posts()
-                        .await
-                        .unwrap();
-                    info!(
-                        "Now waiting for {} seconds before re-running",
-                        self.run_interval_seconds
-                    );
-                    sleep(Duration::from_secs(self.run_interval_seconds)).await;
                 }
-            })
-            .await;
+            }));
         }
+
+        futures::future::try_join_all(handles).await.unwrap();
+
         Ok(())
     }
 }
