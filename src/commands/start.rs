@@ -9,7 +9,6 @@ use reqwest::Url;
 use scraper::{Html, Selector};
 use std::sync::Arc;
 use std::{path::PathBuf, primitive, time::Duration};
-use tokio::sync::RwLock;
 use tokio::time::sleep;
 
 use super::ExecutableCommand;
@@ -96,8 +95,7 @@ pub struct StartCommand {
 
 impl ExecutableCommand for StartCommand {
     async fn run(self) -> Result<()> {
-        let database = Arc::new(RwLock::new(Database::new(&self.database_url).await?));
-        let bsky_handler = BlueskyHandler::new(
+        let database = Arc::new(Database::new(&self.database_url).await?);
             self.service,
             self.agent_config_path,
             self.disable_post_comments,
@@ -106,8 +104,7 @@ impl ExecutableCommand for StartCommand {
         bsky_handler.login(&self.identifier, &self.password).await?;
 
         for feed in self.rss_feed_urls {
-            let mut rsshandler =
-                RssHandler::new(feed, Arc::clone(&database), self.feed_backdate_hours);
+            let mut rsshandler = RssHandler::new(feed, database.clone(), self.feed_backdate_hours);
             let og_description_selector = Selector::parse(r#"meta[property="og:description"]"#)
                 .expect("selector expression should be parseable");
             let og_image_selector = Selector::parse(r#"meta[property="og:image"]"#)
@@ -189,18 +186,11 @@ impl ExecutableCommand for StartCommand {
                             .unwrap();
 
                         database
-                            .write()
-                            .await
-                            .add_posted_url(&post.links.first().unwrap().href)
+                                .add_posted_url(&post.links.first().unwrap().href.to_string())
                             .await
                             .unwrap();
                     }
-                    database
-                        .write()
-                        .await
-                        .remove_old_stored_posts()
-                        .await
-                        .unwrap();
+                        database.remove_old_stored_posts().await.unwrap();
                     info!(
                         "Now waiting for {} seconds before re-running",
                         self.run_interval_seconds
