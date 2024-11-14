@@ -1,11 +1,13 @@
 [package]
 name = "bsky-rss-bot"
+authors = ["Blooym"]
+repository = "https://github.com/Blooym/bsky-tss-bot"
 description = "A simple RSS feed subscriber -> Bluesky post bot."
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tokio = { version = "1.41.1", features = ["full"] }
+tokio = { version = "1.41.1", features = ["rt-multi-thread", "macros"] }
 reqwest = { version = "0.12.9", features = ["rustls-tls"] }
 sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio"] }
 log = "0.4.22"
@@ -18,3 +20,8 @@ feed-rs = "2.1.1"
 bsky-sdk = "0.1.12"
 image = "0.25.5"
 scraper = "0.21.0"
+futures = "0.3.31"
+
+[profile.release]
+lto = true
+codegen-units = 1

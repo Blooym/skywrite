@@ -9,7 +9,8 @@ A simple RSS feed subscriber -> Bluesky post bot.
 
 ## Features
 
-- Posts automatically backdated and fetched X hours from before bot startup.
+- Post multiple feeds to a single account.
+- Automatically backdated posts fetched X hours from before bot startup.
 - Duplicate post detection via URL stored in persistent database.
 - Link embedding with image support.
 
@@ -31,7 +32,7 @@ services:
       - APP_SERVICE=
       - APP_IDENTIFIER=
       - APP_PASSWORD=
-      - RSS_FEED_URL=
+      - RSS_FEED_URLS=
       - RERUN_INTERVAL_SECONDS=
       - RSS_FEED_BACKDATE_HOURS=
       - POSTING_LANGUAGES=
