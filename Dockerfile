@@ -2,7 +2,7 @@
 #    USER
 # ----------
 FROM alpine:latest AS user
-RUN adduser -S -s /bin/false -D bskybot
+RUN adduser -S -s /bin/false -D skywrite
 RUN mkdir /data
 
 ###########
@@ -32,17 +32,15 @@ RUN cargo build --release
 # Runtime #
 ###########
 FROM scratch
-WORKDIR /opt/skywrite
-ENV RUST_BACKTRACE=1
-ENV DATABASE_URL=DATABASE_URL=sqlite://./data/db.sqlite3?mode=rwc
-ENV AGENT_CONFIG_PATH=./data/agentconfig.json
-
-# Import and switch to non-root user.
-COPY --from=user /data /opt/skywrite/data
 COPY --from=user /etc/passwd /etc/passwd
 COPY --from=user /bin/false /bin/false
-USER bskybot
 
-# Copy binary and run
+USER skywrite
+WORKDIR /opt/skywrite
+COPY --from=user --chown=skywrite /data /opt/skywrite/data
+
+ENV RUST_BACKTRACE=1
+ENV DATABASE_URL=sqlite:///opt/skywrite/data/db.sqlite3?mode=rwc
+ENV DATA_PATH=/opt/skywrite/data
 COPY --from=builder /build/target/release/skywrite /usr/local/bin/skywrite
 ENTRYPOINT ["/usr/local/bin/skywrite", "start"]

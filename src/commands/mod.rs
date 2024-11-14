@@ -1,7 +1,10 @@
 mod database;
 mod start;
 
-use std::{fs::create_dir_all, path::PathBuf};
+use std::{
+    fs::{create_dir_all, exists},
+    path::PathBuf,
+};
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -53,8 +56,10 @@ enum Commands {
 
 impl CommandRoot {
     pub async fn run(self) -> Result<()> {
-        create_dir_all(&self.data_path)
-            .context("failed to create directory at provided --data-path")?;
+        if !exists(&self.data_path)? {
+            create_dir_all(&self.data_path)
+                .context("failed to create directory at provided --data-path")?;
+        }
         let global_args = GlobalArguments {
             data_path: self.data_path,
             database_url: self.database_url,
