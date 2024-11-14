@@ -72,21 +72,25 @@ cargo run -r
 
 ## Configuration
 
-Configuration is handled entirely through environment variables, usually using
-either docker directly or `.env`.
+Configuration is handled entirely through environment variables or command-line
+flags. The available configuration options for the 'start' command are:
 
 - `APP_SERVICE`: The full URL to the service to communicate with. Defaults to
   `https://bsky.social`
-- `APP_IDENTITY`: The username or email of the application's account.
+- `APP_IDENTIFIER`: The username or email of the application's account.
 - `APP_PASSWORD`: The app password to use for authentication.
-- `RSS_FEED_URLS`: A comma-seperated list of URLs pointing directly to RSS
-  feeds.
+- `DATA_PATH`: The base directory to store things like configuration files and
+  other persistent data.
+- `DATABASE_URL`: The connection string to use when connecting to the sqlite
+  database. Supports some connection parameters.
 - `RERUN_INTERVAL_SECONDS`: The interval of time in seconds between checking for
   new posts.
 - `RSS_FEED_BACKDATE_HOURS`: The number of hours in the past the bot should
   check for posts that haven't been posted at startup. Useful for backdating an
   account or when an outage occurs.
+- `RSS_FEED_URLS`: A comma-seperated list of URLs pointing directly to RSS
+  feeds.
+- `DISABLE_POST_COMMENTS`: Whether Bluesky posts should have comments disabled.
 - `POSTING_LANGUAGES`: A comma-seperated list of languages in **ISO-639-1** to
   classify posts under. This should corrolate to the language of the posts the
   feed is linking to.
-- `DISABLE_POST_COMMENTS`: Whether Bluesky posts should have comments disabled.

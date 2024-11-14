@@ -8,17 +8,17 @@ use log::info;
 use reqwest::Url;
 use scraper::{Html, Selector};
 use std::sync::Arc;
-use std::{path::PathBuf, primitive, time::Duration};
+use std::{primitive, time::Duration};
 use tokio::time::sleep;
 
-use super::ExecutableCommand;
+use super::{ExecutableCommand, GlobalArguments};
 
 /// Start the bot and begin checking for new RSS posts on an interval.
 #[derive(Debug, Clone, Parser)]
 pub struct StartCommand {
     /// The base URL of the service to communicate with.
     ///
-    /// Note that that you must delete the file at `--agent-config-path` to change this after it has been initially set.
+    /// Note that that you must delete the file at `{data-path}/agentconfig.json` to change this after it has been initially set.
     #[clap(
         required = true,
         default_value = "https://bsky.social",
@@ -47,18 +47,10 @@ pub struct StartCommand {
     /// Useful for backdating an account or when an outage occurs.
     #[clap(
         default_value_t = 3,
-        long = "feed-backdate-hours",
+        long = "rss-feed-backdate-hours",
         env = "RSS_FEED_BACKDATE_HOURS"
     )]
-    feed_backdate_hours: u16,
-
-    /// Whether Bluesky posts should have comments disabled.
-    #[clap(
-        default_value_t = true,
-        long = "disable-post-comm to images.ents",
-        env = "DISABLE_POST_COMMENTS"
-    )]
-    disable_post_comments: primitive::bool,
+    rss_feed_backdate_hours: u16,
 
     /// A comma-seperated list of URLs pointing directly to RSS feeds.
     #[clap(
@@ -69,7 +61,15 @@ pub struct StartCommand {
     )]
     rss_feed_urls: Vec<Url>,
 
-    /// A comma-seperated list of languages in **ISO-639-1** to classify posts under.
+    /// Whether Bluesky posts should have comments disabled.
+    #[clap(
+        default_value_t = true,
+        long = "disable-post-comm to images.ents",
+        env = "DISABLE_POST_COMMENTS"
+    )]
+    disable_post_comments: primitive::bool,
+
+    /// A comma-seperated list of languages in ISO-639-1 format to classify posts under.
     /// This should corrolate to the language of the posts the feed is linking to.
     #[clap(
         required = true,
@@ -79,32 +79,15 @@ pub struct StartCommand {
         value_delimiter = ','
     )]
     post_languages: Vec<String>,
-
-    /// The connection string to use when connecting to the sqlite database.
-    /// Supports some connection parameters.
-    #[arg(
-        long = "database-url",
-        env = "DATABASE_URL",
-        default_value = format!("sqlite://{}?mode=rwc", dirs::config_local_dir().unwrap().join("skywrite").join("db.sqlite3").to_str().unwrap())
-    )]
-    database_url: String,
-
-    /// The location of Atrium's bluesky agent configuration and session persistence file.
-    #[arg(
-        long = "agent-config-path",
-        env = "AGENT_CONFIG_PATH",
-        default_value = dirs::config_local_dir().unwrap().join("skywrite").join("agentconfig.json").into_os_string()
-    )]
-    agent_config_path: PathBuf,
 }
 
 impl ExecutableCommand for StartCommand {
-    async fn run(self) -> Result<()> {
-        let database = Arc::new(Database::new(&self.database_url).await?);
+    async fn run(self, global_args: GlobalArguments) -> Result<()> {
+        let database = Arc::new(Database::new(&global_args.database_url).await?);
         let bsky_handler = Arc::new(
             BlueskyHandler::new(
                 self.service,
-                self.agent_config_path,
+                global_args.data_path.join("agentconfig.json"),
                 self.disable_post_comments,
             )
             .await?,
@@ -113,7 +96,8 @@ impl ExecutableCommand for StartCommand {
 
         let mut handles = vec![];
         for feed in self.rss_feed_urls {
-            let mut rsshandler = RssHandler::new(feed, database.clone(), self.feed_backdate_hours);
+            let mut rsshandler =
+                RssHandler::new(feed, database.clone(), self.rss_feed_backdate_hours);
 
             handles.push(tokio::spawn({
                 let database = database.clone();

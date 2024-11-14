@@ -5,7 +5,7 @@ mod rss;
 
 use anyhow::Result;
 use clap::Parser;
-use commands::{CommandRoot, ExecutableCommand};
+use commands::CommandRoot;
 use dotenvy::dotenv;
 use std::env;
 use tracing_subscriber::EnvFilter;

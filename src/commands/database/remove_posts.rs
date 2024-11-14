@@ -1,4 +1,7 @@
-use crate::{commands::ExecutableCommand, database::Database};
+use crate::{
+    commands::{ExecutableCommand, GlobalArguments},
+    database::Database,
+};
 use anyhow::Result;
 use clap::Parser;
 use log::info;
@@ -14,20 +17,11 @@ pub struct RemovePostsCommand {
     /// A comma-seperated list of URLs to posts.
     #[clap(value_delimiter = ',', required = true)]
     posts: Vec<Url>,
-
-    /// The connection string to use when connecting to the sqlite database.
-    /// Supports some connection parameters.
-    #[arg(
-        long = "database-url",
-        env = "DATABASE_URL",
-        default_value = format!("sqlite://{}?mode=rwc", dirs::config_local_dir().unwrap().join("skywrite").join("db.sqlite3").to_str().unwrap())
-    )]
-    database_url: String,
 }
 
 impl ExecutableCommand for RemovePostsCommand {
-    async fn run(self) -> Result<()> {
-        let database = Database::new(&self.database_url).await?;
+    async fn run(self, global_args: GlobalArguments) -> Result<()> {
+        let database = Database::new(&global_args.database_url).await?;
 
         for post in self.posts {
             let url = post.as_str();
