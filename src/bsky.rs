@@ -51,7 +51,7 @@ impl BlueskyHandler {
         disable_comments: bool,
     ) -> Result<Self> {
         let _ = create_dir_all(
-            &agent_config_path
+            agent_config_path
                 .parent()
                 .context("invalid path for agent configuration (cannot find parent)")?,
         );
