@@ -54,20 +54,20 @@ docker compose up -d
 
 1. Ensure you have [Rust](https://www.rust-lang.org/tools/install) installed and
    in your `$PATH`.
-2. Clone the repository
+2. Install the project binary
 
 ```
-git clone https://github.com/Blooym/skywrite.git
+cargo install --git https://github.com/Blooym/skywrite.git
 ```
 
 3. Copy `.env.example` to `.env` and fill in the values as necessary.
    Information about configuration options can be found in the
    [configuration](#configuration) section.
 
-4. Run the project
+4. Run the project from the same directory as `.env`
 
 ```
-cargo run -r
+skywrite start
 ```
 
 ## Configuration
