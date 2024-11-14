@@ -5,15 +5,15 @@ on:
     branches: ["main"]
     paths:
       - "src/**"
-      - "deno.json"
-      - "deno.lock"
+      - "Crate.toml"
+      - "Crate.lock"
   pull_request:
     branches: ["main"]
     types: [ready_for_review, opened, synchronize]
     paths:
       - "src/**"
-      - "deno.json"
-      - "deno.lock"
+      - "Cargo.toml"
+      - "Cargo.lock"
   workflow_dispatch:
 
 concurrency:
@@ -21,19 +21,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  Deno:
-    name: "Deno"
+  Rust:
+    name: "Rust"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: recursive
-        
-      - name: Setup Deno  
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
 
-      - name: Ensure Project Compiles
-        run: deno compile --output build src/main.ts
+      - name: Setup Rust Toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          components: rustfmt, clippy
+          cache: true
+
+      - name: Build Project
+        run: cargo build --all
+
+      - name: Run Tests
+        run: cargo test --all
+
+      - name: Run Clippy
+        run: cargo clippy --all -- -D warnings
+
+      - name: Run Rustfmt
+        run: cargo fmt --all --check

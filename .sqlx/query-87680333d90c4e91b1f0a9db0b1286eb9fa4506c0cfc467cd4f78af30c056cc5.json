@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO posted_urls (url) VALUES (?)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "87680333d90c4e91b1f0a9db0b1286eb9fa4506c0cfc467cd4f78af30c056cc5"
+}

@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS posted_urls (url TEXT PRIMARY KEY);
