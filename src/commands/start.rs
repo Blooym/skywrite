@@ -7,6 +7,7 @@ use clap::Parser;
 use log::info;
 use reqwest::Url;
 use scraper::{Html, Selector};
+use std::sync::Arc;
 use std::{path::PathBuf, primitive, time::Duration};
 use tokio::time::sleep;
 
@@ -99,13 +100,15 @@ pub struct StartCommand {
 
 impl ExecutableCommand for StartCommand {
     async fn run(self) -> Result<()> {
-        let database = Database::new(&self.database_url).await?;
-        let bsky_handler = BlueskyHandler::new(
-            self.service,
-            self.agent_config_path,
-            self.disable_post_comments,
-        )
-        .await?;
+        let database = Arc::new(Database::new(&self.database_url).await?);
+        let bsky_handler = Arc::new(
+            BlueskyHandler::new(
+                self.service,
+                self.agent_config_path,
+                self.disable_post_comments,
+            )
+            .await?,
+        );
         bsky_handler.login(&self.identifier, &self.password).await?;
 
         let mut handles = vec![];
@@ -127,19 +130,20 @@ impl ExecutableCommand for StartCommand {
                             rsshandler.get_feed()
                         );
 
-        loop {
-            info!(
-                "Checking for unposted entries for RSS feed: {}",
-                rsshandler.get_feed()
-            );
+                        let posts = rsshandler.fetch_unposted().await.unwrap().entries;
+                        for post in &posts {
+                            let Some(post_link) = post.links.first() else {
+                                continue;
+                            };
 
-            let posts = rsshandler.fetch_unposted().await?.entries;
-            for post in &posts {
-                let Some(post_link) = post.links.first() else {
-                    continue;
-                };
+                            info!("Running for post '{}'", post_link.href);
 
-                info!("Running for post '{}'", post_link.href);
+                            let page = reqwest::get(&post_link.href)
+                                .await
+                                .unwrap()
+                                .text()
+                                .await
+                                .unwrap();
 
                             // Synchronously obtain data from the HTML, so that we do not carry `html` across an await point
                             let post_data = {
@@ -210,5 +214,9 @@ impl ExecutableCommand for StartCommand {
                 }
             }));
         }
+
+        futures::future::try_join_all(handles).await.unwrap();
+
+        Ok(())
     }
 }

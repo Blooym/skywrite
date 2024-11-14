@@ -1,12 +1,15 @@
-FROM denoland/deno
-USER deno
-WORKDIR /opt/bsky-rss-bot
+# ----------
+#    USER
+# ----------
+FROM alpine:latest AS user
+RUN adduser -S -s /bin/false -D bskybot
+RUN mkdir /data
 
-# Precache deps.
-COPY ["deno.json", "deno.lock", "."]
-COPY ./src ./src
-RUN mkdir ./data
-RUN deno cache src/main.ts
+###########
+# Builder #
+###########
+FROM rust:alpine AS builder 
+WORKDIR /build
 
 # Install build dependencies
 RUN apk add --update build-base cmake libressl-dev
