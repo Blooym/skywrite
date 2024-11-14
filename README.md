@@ -79,7 +79,8 @@ either docker directly or `.env`.
   `https://bsky.social`
 - `APP_IDENTITY`: The username or email of the application's account.
 - `APP_PASSWORD`: The app password to use for authentication.
-- `RSS_FEED_URL`: A full URL including protocol to an RSS feed.
+- `RSS_FEED_URLS`: A comma-seperated list of URLs pointing directly to RSS
+  feeds.
 - `RERUN_INTERVAL_SECONDS`: The interval of time in seconds between checking for
   new posts.
 - `RSS_FEED_BACKDATE_HOURS`: The number of hours in the past the bot should
