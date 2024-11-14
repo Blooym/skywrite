@@ -87,7 +87,7 @@ impl ExecutableCommand for StartCommand {
         let bsky_handler = Arc::new(
             BlueskyHandler::new(
                 self.service,
-                global_args.data_path.join("agentconfig.json"),
+                global_args.data_path,
                 self.disable_post_comments,
             )
             .await?,

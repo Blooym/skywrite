@@ -40,17 +40,18 @@ pub struct PostEmbed {
 
 pub struct BlueskyHandler {
     pub agent: BskyAgent,
-    pub config_path: PathBuf,
+    pub data_path: PathBuf,
     pub disable_comments: bool,
 }
 
 impl BlueskyHandler {
     pub async fn new(
         service: Url,
-        agent_config_path: PathBuf,
+        data_path_base: PathBuf,
         disable_comments: bool,
     ) -> Result<Self> {
-        let config = Config::load(&FileStore::new(&agent_config_path))
+        let data_path = data_path_base.join("agentconfig.json");
+        let config = Config::load(&FileStore::new(&data_path))
             .await
             .unwrap_or_else(|_| Config {
                 endpoint: service
@@ -61,7 +62,7 @@ impl BlueskyHandler {
             });
         Ok(Self {
             agent: BskyAgent::builder().config(config).build().await?,
-            config_path: agent_config_path,
+            data_path,
             disable_comments,
         })
     }
@@ -71,7 +72,7 @@ impl BlueskyHandler {
         self.agent
             .to_config()
             .await
-            .save(&FileStore::new(&self.config_path))
+            .save(&FileStore::new(&self.data_path))
             .await?;
 
         Ok(())
