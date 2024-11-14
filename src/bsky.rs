@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bsky_sdk::{
     agent::config::{Config, FileStore},
     api::{
@@ -21,7 +21,7 @@ use chrono::{DateTime, Utc};
 use image::{imageops::FilterType, ImageFormat, ImageReader};
 use log::{debug, info};
 use reqwest::Url;
-use std::{io::Cursor, path::PathBuf, str::FromStr};
+use std::{fs::create_dir_all, io::Cursor, path::PathBuf, str::FromStr};
 
 #[derive(Debug)]
 pub struct PostData {
@@ -50,6 +50,11 @@ impl BlueskyHandler {
         agent_config_path: PathBuf,
         disable_comments: bool,
     ) -> Result<Self> {
+        let _ = create_dir_all(
+            &agent_config_path
+                .parent()
+                .context("invalid path for agent configuration (cannot find parent)")?,
+        );
         let config = Config::load(&FileStore::new(&agent_config_path))
             .await
             .unwrap_or_else(|_| Config {

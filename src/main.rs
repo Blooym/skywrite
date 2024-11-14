@@ -7,10 +7,12 @@ use anyhow::Result;
 use clap::Parser;
 use commands::{CommandRoot, ExecutableCommand};
 use dotenvy::dotenv;
+use std::env;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    env::set_var("RUST_BACKTRACE", "1");
     dotenv().ok();
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("info")))

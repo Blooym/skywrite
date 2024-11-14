@@ -32,9 +32,13 @@ RUN cargo build --release
 # Runtime #
 ###########
 FROM scratch
+WORKDIR /opt/bsky-rss-bot
 ENV RUST_BACKTRACE=1
+ENV DATABASE_URL=DATABASE_URL=sqlite://./data/db.sqlite3?mode=rwc
+ENV AGENT_CONFIG_PATH=./data/agentconfig.json
 
 # Import and switch to non-root user.
+COPY --from=user /data /opt/bsky-rss-bot/data
 COPY --from=user /etc/passwd /etc/passwd
 COPY --from=user /bin/false /bin/false
 USER bskybot

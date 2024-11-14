@@ -85,7 +85,7 @@ pub struct StartCommand {
     #[arg(
         long = "database-url",
         env = "DATABASE_URL",
-        default_value = "sqlite://./data/db.sqlite3?mode=rwc"
+        default_value = format!("sqlite://{}?mode=rwc", dirs::config_local_dir().unwrap().join("bsky-rss-bot").join("db.sqlite3").to_str().unwrap())
     )]
     database_url: String,
 
@@ -93,7 +93,7 @@ pub struct StartCommand {
     #[arg(
         long = "agent-config-path",
         env = "AGENT_CONFIG_PATH",
-        default_value = "./data/config.json"
+        default_value = dirs::config_local_dir().unwrap().join("bsky-rss-bot").join("agentconfig.json").into_os_string()
     )]
     agent_config_path: PathBuf,
 }
