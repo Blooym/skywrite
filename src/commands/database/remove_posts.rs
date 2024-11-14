@@ -20,7 +20,7 @@ pub struct RemovePostsCommand {
     #[arg(
         long = "database-url",
         env = "DATABASE_URL",
-        default_value = format!("sqlite://{}?mode=rwc", dirs::config_local_dir().unwrap().join("bsky-rss-bot").join("db.sqlite3").to_str().unwrap())
+        default_value = format!("sqlite://{}?mode=rwc", dirs::config_local_dir().unwrap().join("skywrite").join("db.sqlite3").to_str().unwrap())
     )]
     database_url: String,
 }

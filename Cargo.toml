@@ -1,7 +1,7 @@
 [package]
-name = "bsky-rss-bot"
+name = "skywrite"
 authors = ["Blooym"]
-repository = "https://github.com/Blooym/bsky-tss-bot"
+repository = "https://github.com/Blooym/skywrite"
 description = "A simple RSS feed subscriber -> Bluesky post bot."
 version = "0.1.0"
 edition = "2021"

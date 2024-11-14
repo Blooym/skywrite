@@ -1,4 +1,4 @@
-# Bluesky RSS Bot
+# Skywrite
 
 > [!IMPORTANT]
 > This project will break release-to-release until stablised! There is no
@@ -25,8 +25,8 @@ A simple RSS feed subscriber -> Bluesky post bot.
 
 ```yml
 services:
-  bsky-rss-bot:
-    image: ghcr.io/blooym/bsky-rss-bot
+  skywrite:
+    image: ghcr.io/blooym/skywrite
     restart: unless-stopped
     environment:
       - APP_SERVICE=
@@ -38,10 +38,10 @@ services:
       - POSTING_LANGUAGES=
       - DISABLE_POST_COMMENTS=
     volumes:
-      - bsky-rss-bot-data:/opt/bsky-rss-bot/data
+      - skywrite-data:/opt/skywrite/data
 
 volumes:
-  bsky-rss-bot-data:
+  skywrite-data:
 ```
 
 2. Start the stack
@@ -57,7 +57,7 @@ docker compose up -d
 2. Clone the repository
 
 ```
-git clone https://github.com/Blooym/bsky-rss-bot.git
+git clone https://github.com/Blooym/skywrite.git
 ```
 
 3. Copy `.env.example` to `.env` and fill in the values as necessary.
