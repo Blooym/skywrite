@@ -35,7 +35,7 @@ services:
       - RSS_FEED_URLS=
       - RERUN_INTERVAL_SECONDS=
       - RSS_FEED_BACKDATE_HOURS=
-      - POSTING_LANGUAGES=
+      - POST_LANGUAGES=
       - DISABLE_POST_COMMENTS=
     volumes:
       - skywrite-data:/opt/skywrite/data
@@ -91,6 +91,6 @@ flags. The available configuration options for the 'start' command are:
 - `RSS_FEED_URLS`: A comma-seperated list of URLs pointing directly to RSS
   feeds.
 - `DISABLE_POST_COMMENTS`: Whether Bluesky posts should have comments disabled.
-- `POSTING_LANGUAGES`: A comma-seperated list of languages in **ISO-639-1** to
+- `POST_LANGUAGES`: A comma-seperated list of languages in **ISO-639-1** to
   classify posts under. This should corrolate to the language of the posts the
   feed is linking to.
