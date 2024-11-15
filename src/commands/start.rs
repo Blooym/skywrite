@@ -1,3 +1,4 @@
+use super::{ExecutableCommand, GlobalArguments};
 use crate::bsky::{BlueskyHandler, PostData, PostEmbed};
 use crate::database::Database;
 use crate::rss::RssHandler;
@@ -10,8 +11,6 @@ use scraper::{Html, Selector};
 use std::sync::Arc;
 use std::{primitive, time::Duration};
 use tokio::time::sleep;
-
-use super::{ExecutableCommand, GlobalArguments};
 
 /// Start the bot and begin checking for new RSS posts on an interval.
 #[derive(Debug, Clone, Parser)]
@@ -64,7 +63,7 @@ pub struct StartCommand {
     /// Whether Bluesky posts should have comments disabled.
     #[clap(
         default_value_t = true,
-        long = "disable-post-comm to images.ents",
+        long = "disable-post-comments",
         env = "DISABLE_POST_COMMENTS"
     )]
     disable_post_comments: primitive::bool,
