@@ -1,10 +1,3 @@
-# ----------
-#    USER
-# ----------
-FROM alpine:latest AS user
-RUN adduser -S -s /bin/false -D skywrite
-RUN mkdir /data
-
 ###########
 # Builder #
 ###########
@@ -31,13 +24,11 @@ RUN cargo build --release
 ###########
 # Runtime #
 ###########
-FROM scratch
-COPY --from=user /etc/passwd /etc/passwd
-COPY --from=user /bin/false /bin/false
-
+FROM alpine
+RUN adduser -S -s /bin/false -D skywrite
 USER skywrite
 WORKDIR /opt/skywrite
-COPY --from=user --chown=skywrite /data /opt/skywrite/data
+RUN mkdir /opt/skywrite/data
 
 ENV RUST_BACKTRACE=1
 ENV DATABASE_URL=sqlite:///opt/skywrite/data/db.sqlite3?mode=rwc
