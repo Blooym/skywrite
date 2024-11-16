@@ -4,14 +4,11 @@ use bsky_sdk::{
     api::{
         app::bsky::{
             embed::external::{ExternalData, MainData},
-            feed::{
-                post::{self, RecordEmbedRefs},
-                threadgate,
-            },
+            feed::post::{self, RecordEmbedRefs},
         },
         types::{
             string::{Datetime, Language},
-            Union,
+            Collection, TryIntoUnknown, Union,
         },
     },
     rich_text::RichText,
@@ -121,13 +118,40 @@ impl BlueskyHandler {
                 "Disabling post comments via threadgate for '{}'",
                 record.uri
             );
+
+            let rkey = record
+                .uri
+                .rsplit_once('/')
+                .map(|(_, rkey)| rkey.to_string());
             self.agent
-                .create_record(threadgate::RecordData {
-                    allow: None,
-                    created_at: Datetime::now(),
-                    hidden_replies: None,
-                    post: record.uri.clone(),
-                })
+                .api
+                .com
+                .atproto
+                .repo
+                .create_record(
+                    bsky_sdk::api::com::atproto::repo::create_record::InputData {
+                        collection: bsky_sdk::api::app::bsky::feed::Threadgate::nsid(),
+                        record: bsky_sdk::api::app::bsky::feed::threadgate::RecordData {
+                            allow: Some(vec![]),
+                            created_at: Datetime::now(),
+                            hidden_replies: None,
+                            post: record.uri.clone(),
+                        }
+                        .try_into_unknown()?,
+                        repo: self
+                            .agent
+                            .get_session()
+                            .await
+                            .expect("not unauthenticated")
+                            .data
+                            .did
+                            .into(),
+                        rkey,
+                        swap_commit: None,
+                        validate: None,
+                    }
+                    .into(),
+                )
                 .await?;
         };
 
