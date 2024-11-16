@@ -2,10 +2,11 @@ use super::{ExecutableCommand, GlobalArguments};
 use crate::bsky::{BlueskyHandler, PostData, PostEmbed};
 use crate::database::Database;
 use crate::rss::RssHandler;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::DateTime;
 use clap::Parser;
-use log::info;
+use futures::future;
+use log::{debug, error, info, warn};
 use reqwest::Url;
 use scraper::{Html, Selector};
 use std::sync::Arc;
@@ -106,6 +107,7 @@ impl ExecutableCommand for StartCommand {
                     .expect("selector expression should be parseable");
                 let og_image_selector = Selector::parse(r#"meta[property="og:image"]"#)
                     .expect("selector expression should be parseable");
+
                 async move {
                     loop {
                         info!(
@@ -113,81 +115,102 @@ impl ExecutableCommand for StartCommand {
                             rsshandler.get_feed()
                         );
 
-                        let posts = rsshandler.fetch_unposted().await.unwrap().entries;
-                        for post in &posts {
-                            let Some(post_link) = post.links.first() else {
-                                continue;
-                            };
-
-                            info!("Running for post '{}'", post_link.href);
-
-                            let page = reqwest::get(&post_link.href)
-                                .await
-                                .unwrap()
-                                .text()
-                                .await
-                                .unwrap();
-
-                            // Synchronously obtain data from the HTML, so that we do not carry `html` across an await point
-                            let post_data = {
-                                let html = scraper::Html::parse_document(&page);
-                                PostData {
-                                    created_at: post.published.unwrap_or(DateTime::default()),
-                                    text: format!(
-                                        "{} - {}",
+                        if let Ok(feed) = rsshandler.fetch_unposted().await {
+                            for post in feed.entries {
+                                let Some(post_link) = post.links.first() else {
+                                    debug!(
+                                        "Post '{:?}' did not have any links attached, it will be skipped.",
                                         post.title
-                                            .clone()
-                                            .map_or(String::from("New post"), |f| f.content),
-                                        post_link.href
-                                    ),
-                                    languages: post_languages.clone(),
-                                    embed: Some(PostEmbed {
-                                        title: post
-                                            .title
-                                            .clone()
-                                            .map(|f| f.content)
-                                            .unwrap_or_else(|| post_link.href.clone()),
-                                        description: post
-                                            .summary
-                                            .clone()
-                                            .map(|summary| {
-                                                Html::parse_fragment(&summary.content)
-                                                    .tree
-                                                    .into_iter()
-                                                    .filter_map(|node| {
-                                                        node.as_text()
-                                                            .map(|text| text.text.to_string())
-                                                    })
-                                                    .collect::<String>()
-                                            })
-                                            .or_else(|| {
-                                                html.select(&og_description_selector)
-                                                    .next()
-                                                    .and_then(|desc| {
-                                                        desc.value()
-                                                            .attr("content")
-                                                            .map(|a| a.to_string())
-                                                    })
-                                            })
-                                            .unwrap_or_else(|| {
-                                                "This site has not provided a description".into()
-                                            }),
-                                        thumbnail_url: html
-                                            .select(&og_image_selector)
-                                            .next()
-                                            .and_then(|f| f.value().attr("content"))
-                                            .and_then(|u| Url::parse(u).ok()),
-                                        uri: Url::parse(&post_link.href).unwrap(),
-                                    }),
-                                }
-                            };
-                            bsky_handler.post(post_data).await.unwrap();
-                            database
-                                .add_posted_url(&post.links.first().unwrap().href.to_string())
-                                .await
-                                .unwrap();
-                        }
-                        database.remove_old_stored_posts().await.unwrap();
+                                    );
+                                    continue;
+                                };
+                                info!("Running for post '{}'", post_link.href);
+                                
+                                // Fetch the page text to extract opengraph data.
+                                let page = match reqwest::get(&post_link.href).await {
+                                    Ok(res) => res.text().await.context("failed to page text").unwrap(),
+                                    Err(err) => {
+                                        error!(
+                                            "Failed to get page data for {}: {err} - it will be retried next interval",
+                                            &post_link.href
+                                        );
+                                        continue;
+                                    }
+                                };
+
+                                // Synchronously obtain data from the page so that we do not carry `html` across an await point.
+                                let post_data = {
+                                    let html = scraper::Html::parse_document(&page);
+                                    PostData {
+                                        created_at: post.published.unwrap_or(DateTime::default()),
+                                        text: format!(
+                                            "{} - {}",
+                                            post.title
+                                                .clone()
+                                                .map_or(String::from("New post"), |f| f.content),
+                                            post_link.href
+                                        ),
+                                        languages: post_languages.clone(),
+                                        embed: Some(PostEmbed {
+                                            title: post
+                                                .title
+                                                .map(|f| f.content)
+                                                .unwrap_or_else(|| post_link.href.clone()),
+                                            description: post
+                                                .summary
+                                                .map(|summary| {
+                                                    Html::parse_fragment(&summary.content)
+                                                        .tree
+                                                        .into_iter()
+                                                        .filter_map(|node| {
+                                                            node.as_text()
+                                                                .map(|text| text.text.to_string())
+                                                        })
+                                                        .collect::<String>()
+                                                })
+                                                .or_else(|| {
+                                                    html.select(&og_description_selector)
+                                                        .next()
+                                                        .and_then(|desc| {
+                                                            desc.value()
+                                                                .attr("content")
+                                                                .map(|a| a.to_string())
+                                                        })
+                                                })
+                                                .unwrap_or_else(|| {
+                                                    "This site has not provided a description"
+                                                        .into()
+                                                }),
+                                            thumbnail_url: html
+                                                .select(&og_image_selector)
+                                                .next()
+                                                .and_then(|f| f.value().attr("content"))
+                                                .and_then(|u| Url::parse(u).ok()),
+                                            uri: Url::parse(&post_link.href).unwrap(),
+                                        }),
+                                    }
+                                };
+
+                                // Post the resulting data to Bluesky and add it to the database if successful.
+                                bsky_handler.post(post_data).await.unwrap();
+                                database
+                                    .add_posted_url(&post.links.first().unwrap().href.to_string())
+                                    .await
+                                    .unwrap();
+                            }
+
+                            // Remove old posts from the database.
+                            if let Err(err) = database.remove_old_stored_posts().await {
+                                warn!("Failed to run query to remove old stored posts {err}");
+                            }
+                        } else {
+                            error!(
+                                "Failed to fetch feed {}: skipping for this iteration",
+                                rsshandler.get_feed()
+                            );
+                        };
+
+                        // Wait interval time for next iteration.
                         info!(
                             "Now waiting for {} seconds before re-running",
                             self.run_interval_seconds
@@ -198,7 +221,7 @@ impl ExecutableCommand for StartCommand {
             }));
         }
 
-        futures::future::try_join_all(handles).await.unwrap();
+        future::try_join_all(handles).await.unwrap();
 
         Ok(())
     }
