@@ -16,7 +16,7 @@ impl Database {
 
     pub async fn remove_old_stored_posts(&self) -> Result<()> {
         debug!("Removing old posted_urls entries");
-        query!("DELETE FROM posted_urls WHERE ROWID IN (SELECT ROWID FROM posted_urls ORDER BY ROWID DESC LIMIT -1 OFFSET 100)").execute(&self.pool).await?;
+        query!("DELETE FROM posted_urls WHERE ROWID IN (SELECT ROWID FROM posted_urls ORDER BY ROWID DESC LIMIT -1 OFFSET 500)").execute(&self.pool).await?;
         Ok(())
     }
 
