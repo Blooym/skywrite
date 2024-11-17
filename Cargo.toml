@@ -3,7 +3,7 @@ name = "skywrite"
 authors = ["Blooym"]
 repository = "https://github.com/Blooym/skywrite"
 description = "A simple RSS feed subscriber -> Bluesky post bot."
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 [dependencies]
