@@ -125,7 +125,7 @@ impl ExecutableCommand for StartCommand {
                                     continue;
                                 };
                                 info!("Running for post '{}'", post_link.href);
-                                
+
                                 // Fetch the page text to extract opengraph data.
                                 let page = match reqwest::get(&post_link.href).await {
                                     Ok(res) => res.text().await.context("failed to page text").unwrap(),
