@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT url FROM posted_urls",
+  "describe": {
+    "columns": [
+      {
+        "name": "url",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 0
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "928d1977a219ed575b719dd8cadce52e54402872f98bd39f278c8e0e81b4c439"
+}

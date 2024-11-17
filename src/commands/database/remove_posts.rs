@@ -12,7 +12,7 @@ use reqwest::Url;
 /// Useful for making the bot repost URLs that may not have been properly posted.
 ///
 /// Please note that this does not delete the post from Bluesky itself.
-#[derive(Debug, Clone, Parser)]
+#[derive(Debug, Parser)]
 pub struct RemovePostsCommand {
     /// A comma-seperated list of URLs to posts.
     #[clap(value_delimiter = ',', required = true)]

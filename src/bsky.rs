@@ -27,6 +27,7 @@ pub struct PostData {
     pub created_at: DateTime<Utc>,
     pub embed: Option<PostEmbed>,
 }
+
 #[derive(Debug)]
 pub struct PostEmbed {
     pub title: String,
@@ -158,7 +159,7 @@ impl BlueskyHandler {
         Ok(())
     }
 
-    pub async fn embed_external(
+    async fn embed_external(
         &self,
         title: &str,
         description: &str,

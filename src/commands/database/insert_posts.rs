@@ -12,7 +12,7 @@ use reqwest::Url;
 /// Useful for making the bot ignore URLs that may otherwise be unwantedly posted.
 ///
 /// Please note that this does not create a new post on Bluesky.
-#[derive(Debug, Clone, Parser)]
+#[derive(Debug, Parser)]
 pub struct InsertPostsCommand {
     /// A comma-seperated list of URLs to posts.
     #[clap(value_delimiter = ',', required = true)]

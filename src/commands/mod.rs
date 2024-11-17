@@ -11,7 +11,7 @@ use clap::Parser;
 use database::DatabaseCommandBase;
 use start::StartCommand;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct GlobalArguments {
     data_path: PathBuf,
     database_url: String,
@@ -22,7 +22,7 @@ pub trait ExecutableCommand {
     async fn run(self, global_args: GlobalArguments) -> Result<()>;
 }
 
-#[derive(Debug, Clone, Parser)]
+#[derive(Debug, Parser)]
 #[command(author, version, about, long_about)]
 pub struct CommandRoot {
     #[clap(subcommand)]
@@ -48,7 +48,7 @@ pub struct CommandRoot {
     database_url: String,
 }
 
-#[derive(Debug, Clone, Parser)]
+#[derive(Debug, Parser)]
 enum Commands {
     Start(Box<StartCommand>),
     Database(DatabaseCommandBase),

@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "DELETE FROM posted_urls WHERE url =? ",
+  "query": "DELETE FROM posted_urls WHERE url = ?",
   "describe": {
     "columns": [],
     "parameters": {
@@ -8,5 +8,5 @@
     },
     "nullable": []
   },
-  "hash": "0f63873de78f11af416729c8c53fa4b03c668c7cdf15bf6f3a84aa9591c7a1fe"
+  "hash": "e288a46374826aea25db508051660c5c79615ff243a9a8825d56d00e5298f3bf"
 }

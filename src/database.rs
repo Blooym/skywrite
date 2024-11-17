@@ -2,7 +2,7 @@ use anyhow::Result;
 use log::debug;
 use sqlx::{migrate, query, SqlitePool};
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Database {
     pool: SqlitePool,
 }
@@ -16,7 +16,7 @@ impl Database {
 
     pub async fn remove_old_stored_posts(&self) -> Result<()> {
         debug!("Removing old posted_urls entries");
-        query!("DELETE FROM posted_urls WHERE ROWID IN (SELECT ROWID FROM posted_urls ORDER BY ROWID DESC LIMIT -1 OFFSET 500)").execute(&self.pool).await?;
+        query!("DELETE FROM posted_urls WHERE ROWID IN (SELECT ROWID FROM posted_urls ORDER BY ROWID DESC LIMIT -1 OFFSET 25000)").execute(&self.pool).await?;
         Ok(())
     }
 
@@ -30,7 +30,7 @@ impl Database {
 
     pub async fn remove_posted_url(&self, url: &str) -> Result<()> {
         debug!("Removing {url} from posted_urls");
-        query!("DELETE FROM posted_urls WHERE url =? ", url)
+        query!("DELETE FROM posted_urls WHERE url = ?", url)
             .execute(&self.pool)
             .await?;
         Ok(())
@@ -42,5 +42,16 @@ impl Database {
             .fetch_optional(&self.pool)
             .await?
             .is_some())
+    }
+
+    pub async fn get_all_post_urls(&self) -> Result<Option<Vec<String>>> {
+        debug!("Fetching all urls in the posted_urls table");
+        let q = query!(r#"SELECT url FROM posted_urls"#)
+            .fetch_all(&self.pool)
+            .await?
+            .into_iter()
+            .map(|f| f.url)
+            .collect::<Option<Vec<String>>>();
+        Ok(q)
     }
 }

@@ -14,7 +14,7 @@ use std::{primitive, time::Duration};
 use tokio::time::sleep;
 
 /// Start the bot and begin checking for new RSS posts on an interval.
-#[derive(Debug, Clone, Parser)]
+#[derive(Debug, Parser)]
 pub struct StartCommand {
     /// The base URL of the service to communicate with.
     ///
@@ -221,7 +221,7 @@ impl ExecutableCommand for StartCommand {
             }));
         }
 
-        future::try_join_all(handles).await.unwrap();
+        future::try_join_all(handles).await?;
 
         Ok(())
     }

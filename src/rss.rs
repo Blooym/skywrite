@@ -6,7 +6,7 @@ use log::debug;
 use reqwest::Url;
 use std::sync::Arc;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct RssHandler {
     filter_date: chrono::DateTime<Utc>,
     database: Arc<Database>,
