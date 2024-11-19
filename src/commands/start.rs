@@ -3,14 +3,14 @@ use crate::bsky::{BlueskyHandler, PostData, PostEmbed};
 use crate::database::Database;
 use crate::rss::RssHandler;
 use anyhow::{Context, Result};
-use chrono::DateTime;
+use chrono::{DateTime, Duration};
 use clap::Parser;
 use futures::future;
 use log::{debug, error, info, warn};
 use reqwest::Url;
 use scraper::{Html, Selector};
+use std::primitive;
 use std::sync::Arc;
-use std::{primitive, time::Duration};
 use tokio::time::sleep;
 
 /// Start the bot and begin checking for new RSS posts on an interval.
@@ -45,6 +45,8 @@ pub struct StartCommand {
 
     /// The number of hours in the past the bot should check for posts that haven't been posted at startup.
     /// Useful for backdating an account or when an outage occurs.
+    ///
+    /// It is recommended to set this to a minimum of "1" as otherwise posts may get missed.
     #[clap(
         default_value_t = 3,
         long = "rss-feed-backdate-hours",
@@ -96,8 +98,11 @@ impl ExecutableCommand for StartCommand {
 
         let mut handles = vec![];
         for feed in self.rss_feed_urls {
-            let mut rsshandler =
-                RssHandler::new(feed, database.clone(), self.rss_feed_backdate_hours);
+            let mut rsshandler = RssHandler::new(
+                feed,
+                database.clone(),
+                Duration::hours(self.rss_feed_backdate_hours as i64),
+            );
 
             handles.push(tokio::spawn({
                 let database = database.clone();
@@ -215,7 +220,7 @@ impl ExecutableCommand for StartCommand {
                             "Now waiting for {} seconds before re-running",
                             self.run_interval_seconds
                         );
-                        sleep(Duration::from_secs(self.run_interval_seconds)).await;
+                        sleep(std::time::Duration::from_secs(self.run_interval_seconds)).await;
                     }
                 }
             }));
