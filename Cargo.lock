@@ -174,9 +174,9 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atrium-api"
-version = "0.24.7"
+version = "0.24.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee68ddf7cde9eb121eed3a28b138f6a9b4c4a90ab0c5c2e38bc2817af0b06da3"
+checksum = "1c4e5d077f7941ec5484964fba8697b7571a964b0a714e02ae7bc7332833c36b"
 dependencies = [
  "atrium-xrpc",
  "chrono",
@@ -194,9 +194,9 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.11.6"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "737eea1de2eb174bbfe720619cb25a22c30b9640ae0d3b78386cedf007712963"
+checksum = "f223b98be2acdd7afe5b867744aee8258413ed09993099de0a036b247db0ec4c"
 dependencies = [
  "http",
  "serde",
@@ -208,9 +208,9 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc-client"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bccdf321239d0c634f012720f4f35f34cb8b79ebcde04820ffb3a4bb38ad8cf1"
+checksum = "dd9946c18301eee62e8bd0ade5ac2750c9a0778fadf097ac60024b2a79485603"
 dependencies = [
  "atrium-xrpc",
  "reqwest",
@@ -316,9 +316,9 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.12"
+version = "0.1.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "791b6ad2177fbed91c56ed6f8be24300a8fa8bd05e5d10eb66e56fbe62fa276b"
+checksum = "6fd17fed106c2158386e3dd2ddc56b11492350b6b469071d3af7ec3328b4924b"
 dependencies = [
  "anyhow",
  "atrium-api",
@@ -830,9 +830,9 @@ dependencies = [
 
 [[package]]
 name = "feed-rs"
-version = "2.1.1"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6511d29ecf291f32688d546c33d8e62bbebd4fe60ef40b52b20e3f3a0ec6eb56"
+checksum = "d57df0b823b3055c667ddde499736e0d8d7d486b269454eebd96a0fdd59ce051"
 dependencies = [
  "chrono",
  "mediatype",
@@ -1728,6 +1728,9 @@ name = "mediatype"
 version = "0.19.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8878cd8d1b3c8c8ae4b2ba0a36652b7cf192f618a599a7fbdfa25cffd4ea72dd"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "memchr"
@@ -2208,9 +2211,9 @@ dependencies = [
 
 [[package]]
 name = "psl"
-version = "2.1.56"
+version = "2.1.57"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "537e413a86aacc7596a65c7b98d83f71bfc03a7b8f7aa4f4bfb855c003dcb502"
+checksum = "6d8aece545a59dcac10117b6474ef22c32db103b4bf255b7d8e42ae7156a118e"
 dependencies = [
  "psl-types",
 ]
@@ -2238,9 +2241,9 @@ checksum = "a993555f31e5a609f617c12db6250dedcac1b0a85076912c436e6fc9b2c8e6a3"
 
 [[package]]
 name = "quick-xml"
-version = "0.36.2"
+version = "0.37.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7649a7b4df05aed9ea7ec6f628c67c9953a43869b8bc50929569b2999d443fe"
+checksum = "f22f29bdff3987b4d8632ef95fd6424ec7e4e0a57e2f4fc63e489e75357f6a03"
 dependencies = [
  "encoding_rs",
  "memchr",
@@ -2513,9 +2516,9 @@ checksum = "719b953e2095829ee67db738b3bfa9fa368c94900df327b3f07fe6e794d2fe1f"
 
 [[package]]
 name = "rustix"
-version = "0.38.40"
+version = "0.38.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99e4ea3e1cdc4b559b8e5650f9c8e5998e3e5c1343b4eaf034565f32318d63c0"
+checksum = "d7f649912bc1495e167a6edee79151c84b1bad49748cb4f1f1167f459f6224f6"
 dependencies = [
  "bitflags 2.6.0",
  "errno",
@@ -2802,7 +2805,7 @@ checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 
 [[package]]
 name = "skywrite"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "bsky-sdk",
@@ -3562,6 +3565,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
