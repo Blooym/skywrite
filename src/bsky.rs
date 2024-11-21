@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bsky_sdk::{
     agent::config::{Config, FileStore},
     api::{
@@ -43,36 +43,74 @@ pub struct BlueskyHandler {
 }
 
 impl BlueskyHandler {
+    fn make_default_config(service: &str) -> Config {
+        Config {
+            endpoint: service
+                .to_string()
+                .strip_suffix("/")
+                .map_or(service.to_string(), |s| s.to_string()),
+            ..Default::default()
+        }
+    }
+
     pub async fn new(
         service: Url,
         data_path_base: PathBuf,
         disable_comments: bool,
     ) -> Result<Self> {
         let data_path = data_path_base.join("agentconfig.json");
-        let config = Config::load(&FileStore::new(&data_path))
-            .await
-            .unwrap_or_else(|_| Config {
-                endpoint: service
-                    .to_string()
-                    .strip_suffix("/")
-                    .map_or(service.to_string(), |s| s.to_string()),
-                ..Default::default()
-            });
-        Ok(Self {
-            agent: BskyAgent::builder().config(config).build().await?,
-            data_path,
-            disable_comments,
-        })
+
+        // Try login with cached token.
+        return match Config::load(&FileStore::new(&data_path)).await {
+            Ok(config) => {
+                // We have a cached token, attempt to use it.
+                return match BskyAgent::builder().config(config).build().await {
+                    Ok(agent) => {
+                        let handler = Self {
+                            agent,
+                            data_path,
+                            disable_comments,
+                        };
+                        handler.sync_session().await?;
+                        return Ok(handler);
+                    }
+                    Err(_) => Ok(Self {
+                        // Using that session failed, make a new one.
+                        agent: BskyAgent::builder()
+                            .config(Self::make_default_config(service.as_str()))
+                            .build()
+                            .await?,
+                        data_path,
+                        disable_comments,
+                    }),
+                };
+            }
+            Err(_) => Ok(Self {
+                // We don't cache a cached token, make a new session.
+                agent: BskyAgent::builder()
+                    .config(Self::make_default_config(service.as_str()))
+                    .build()
+                    .await?,
+                data_path,
+                disable_comments,
+            }),
+        };
     }
 
     pub async fn login(&self, identifier: &str, password: &str) -> Result<()> {
         self.agent.login(identifier, password).await?;
+        self.sync_session().await?;
+        Ok(())
+    }
+
+    pub async fn sync_session(&self) -> Result<()> {
+        debug!("syncing agent session data");
         self.agent
             .to_config()
             .await
             .save(&FileStore::new(&self.data_path))
-            .await?;
-
+            .await
+            .context("unable to sync bsky session")?;
         Ok(())
     }
 

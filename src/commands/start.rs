@@ -115,6 +115,7 @@ impl ExecutableCommand for StartCommand {
 
                 async move {
                     loop {
+                        bsky_handler.sync_session().await.unwrap();
                         info!(
                             "Checking for unposted entries for RSS feed: {}",
                             rsshandler.get_feed()
