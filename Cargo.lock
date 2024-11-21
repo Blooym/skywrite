@@ -2805,7 +2805,7 @@ checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 
 [[package]]
 name = "skywrite"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "bsky-sdk",
