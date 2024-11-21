@@ -61,10 +61,10 @@ impl BlueskyHandler {
         let data_path = data_path_base.join("agentconfig.json");
 
         // Try login with cached token.
-        return match Config::load(&FileStore::new(&data_path)).await {
+        match Config::load(&FileStore::new(&data_path)).await {
             Ok(config) => {
                 // We have a cached token, attempt to use it.
-                return match BskyAgent::builder().config(config).build().await {
+                match BskyAgent::builder().config(config).build().await {
                     Ok(agent) => {
                         let handler = Self {
                             agent,
@@ -72,7 +72,7 @@ impl BlueskyHandler {
                             disable_comments,
                         };
                         handler.sync_session().await?;
-                        return Ok(handler);
+                        Ok(handler)
                     }
                     Err(_) => Ok(Self {
                         // Using that session failed, make a new one.
@@ -83,7 +83,7 @@ impl BlueskyHandler {
                         data_path,
                         disable_comments,
                     }),
-                };
+                }
             }
             Err(_) => Ok(Self {
                 // We don't cache a cached token, make a new session.
@@ -94,7 +94,7 @@ impl BlueskyHandler {
                 data_path,
                 disable_comments,
             }),
-        };
+        }
     }
 
     pub async fn login(&self, identifier: &str, password: &str) -> Result<()> {
