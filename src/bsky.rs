@@ -17,7 +17,7 @@ use bsky_sdk::{
 use chrono::{DateTime, Utc};
 use log::{debug, info};
 use reqwest::Url;
-use std::{io::Cursor, path::PathBuf, str::FromStr};
+use std::{path::PathBuf, str::FromStr};
 
 #[derive(Debug)]
 pub struct PostData {
