@@ -15,7 +15,6 @@ use bsky_sdk::{
     BskyAgent,
 };
 use chrono::{DateTime, Utc};
-use image::{imageops::FilterType, ImageFormat, ImageReader};
 use log::{debug, info};
 use reqwest::Url;
 use std::{io::Cursor, path::PathBuf, str::FromStr};
@@ -206,15 +205,16 @@ impl BlueskyHandler {
     ) -> Result<Union<RecordEmbedRefs>> {
         info!("Constructing external embed data for: '{uri}'");
         let thumb = if let Some(data) = thumbnail_url {
+            debug!("Fetching and uploading image blob data for '{uri}'");
             let image_bytes = reqwest::get(data).await?.bytes().await?;
-            let mut buf: Vec<u8> = vec![];
-            ImageReader::new(Cursor::new(image_bytes))
-                .with_guessed_format()?
-                .decode()?
-                .resize(800, 800, FilterType::Triangle)
-                .write_to(&mut Cursor::new(&mut buf), ImageFormat::Jpeg)?;
-            debug!("Uploading blob data for '{uri}'");
-            let output = self.agent.api.com.atproto.repo.upload_blob(buf).await?;
+            let output = self
+                .agent
+                .api
+                .com
+                .atproto
+                .repo
+                .upload_blob(image_bytes.to_vec())
+                .await?;
             Some(output.data.blob)
         } else {
             None

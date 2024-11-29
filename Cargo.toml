@@ -3,7 +3,7 @@ name = "skywrite"
 authors = ["Blooym"]
 repository = "https://github.com/Blooym/skywrite"
 description = "A simple RSS feed subscriber -> Bluesky post bot."
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 
 [dependencies]
@@ -17,11 +17,10 @@ log = "0.4.22"
 anyhow = "1.0.93"
 clap = { version = "4.5.21", features = ["derive", "env", "string"] }
 dotenvy = "0.15.7"
-tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 chrono = "0.4.38"
 feed-rs = "2.2.0"
 bsky-sdk = "0.1.13"
-image = "0.25.5"
 scraper = "0.21.0"
 futures = "0.3.31"
 dirs = "5.0.1"
