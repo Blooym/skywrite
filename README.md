@@ -5,7 +5,7 @@
 > promise of stability or compatibility between versions until v1. You have been
 > warned.
 
-A simple RSS feed subscriber -> Bluesky post bot.
+Automatic submission RSS feed posts to Bluesky.
 
 ## Features
 
