@@ -20,7 +20,6 @@ pub struct StartCommand {
     ///
     /// Note that that you must delete the file at `{data-path}/agentconfig.json` to change this after it has been initially set.
     #[clap(
-        required = true,
         default_value = "https://bsky.social",
         long = "app-service",
         env = "APP_SERVICE"
