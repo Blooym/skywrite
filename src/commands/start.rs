@@ -152,14 +152,14 @@ impl ExecutableCommand for StartCommand {
                                             "{} - {}",
                                             post.title
                                                 .clone()
-                                                .map_or(String::from("New post"), |f| f.content),
+                                                .map_or(String::from("New post"), |f| f.content.trim().to_string()),
                                             post_link.href
                                         ),
                                         languages: post_languages.clone(),
                                         embed: Some(PostEmbed {
                                             title: post
                                                 .title
-                                                .map(|f| f.content)
+                                                .map(|f| f.content.trim().to_string())
                                                 .unwrap_or_else(|| post_link.href.clone()),
                                             description: post
                                                 .summary
@@ -169,7 +169,7 @@ impl ExecutableCommand for StartCommand {
                                                         .into_iter()
                                                         .filter_map(|node| {
                                                             node.as_text()
-                                                                .map(|text| text.text.to_string())
+                                                                .map(|text| text.text.trim().to_string())
                                                         })
                                                         .collect::<String>()
                                                 })
@@ -179,7 +179,7 @@ impl ExecutableCommand for StartCommand {
                                                         .and_then(|desc| {
                                                             desc.value()
                                                                 .attr("content")
-                                                                .map(|a| a.to_string())
+                                                                .map(|a| a.trim().to_string())
                                                         })
                                                 })
                                                 .unwrap_or_else(|| {
