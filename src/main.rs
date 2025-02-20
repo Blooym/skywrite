@@ -7,7 +7,6 @@ use anyhow::Result;
 use clap::Parser;
 use commands::CommandRoot;
 use dotenvy::dotenv;
-use std::env;
 use tracing_subscriber::EnvFilter;
 
 #[tokio::main]

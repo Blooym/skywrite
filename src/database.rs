@@ -1,6 +1,6 @@
 use anyhow::Result;
 use log::debug;
-use sqlx::{migrate, query, SqlitePool};
+use sqlx::{SqlitePool, migrate, query};
 
 #[derive(Debug)]
 pub struct Database {

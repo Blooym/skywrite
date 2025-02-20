@@ -2,7 +2,7 @@ use crate::{
     commands::{ExecutableCommand, GlobalArguments},
     database::Database,
 };
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use clap::Parser;
 
 /// Export all posts out of the post_urls table as a comma seperated list.
