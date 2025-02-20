@@ -120,7 +120,7 @@ impl ExecutableCommand for StartCommand {
                             rsshandler.get_feed()
                         );
 
-                        if let Ok(feed) = rsshandler.fetch_unposted().await {
+                        match rsshandler.fetch_unposted().await { Ok(feed) => {
                             for post in feed.entries {
                                 let Some(post_link) = post.links.first() else {
                                     debug!(
@@ -208,12 +208,12 @@ impl ExecutableCommand for StartCommand {
                             if let Err(err) = database.remove_old_stored_posts().await {
                                 warn!("Failed to run query to remove old stored posts {err}");
                             }
-                        } else {
+                        } _ => {
                             error!(
                                 "Failed to fetch feed {}: skipping for this iteration",
                                 rsshandler.get_feed()
                             );
-                        };
+                        }};
 
                         // Wait interval time for next iteration.
                         info!(

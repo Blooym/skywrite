@@ -4,7 +4,7 @@ authors = ["Blooym"]
 repository = "https://github.com/Blooym/skywrite"
 description = "Automatic submission RSS feed posts to Bluesky."
 version = "0.1.6"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 tokio = { version = "1.43.0", default-features = false, features = [
@@ -14,13 +14,13 @@ tokio = { version = "1.43.0", default-features = false, features = [
 reqwest = { version = "0.12.12" }
 sqlx = { version = "0.8.3", features = ["sqlite", "runtime-tokio"] }
 log = "0.4.25"
-anyhow = "1.0.95"
-clap = { version = "4.5.29", features = ["derive", "env", "string"] }
+anyhow = "1.0.96"
+clap = { version = "4.5.30", features = ["derive", "env", "string"] }
 dotenvy = "0.15.7"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 chrono = "0.4.39"
 feed-rs = "2.3.1"
-bsky-sdk = "0.1.15"
+bsky-sdk = "0.1.16"
 scraper = "0.22.0"
 futures = "0.3.31"
 dirs = "6.0.0"
