@@ -32,6 +32,6 @@ RUN mkdir /opt/skywrite/data
 
 ENV RUST_BACKTRACE=1
 ENV DATABASE_URL=sqlite:///opt/skywrite/data/db.sqlite3?mode=rwc
-ENV DATA_PATH=/opt/skywrite/data
+ENV SKYWRITE_DATA_PATH=/opt/skywrite/data
 COPY --from=builder /build/target/release/skywrite /usr/local/bin/skywrite
 ENTRYPOINT ["/usr/local/bin/skywrite", "start"]

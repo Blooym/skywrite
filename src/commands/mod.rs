@@ -31,7 +31,7 @@ pub struct CommandRoot {
     /// The base directory to store things like configuration files and other persistent data.
     #[arg(
         long = "data-path",
-        env = "DATA_PATH",
+        env = "SKYWRITE_DATA_PATH",
         default_value = dirs::config_local_dir().unwrap().join("skywrite").into_os_string(),
         global = true
     )]

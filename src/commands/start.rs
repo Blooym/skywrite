@@ -22,23 +22,27 @@ pub struct StartCommand {
     #[clap(
         default_value = "https://bsky.social",
         long = "app-service",
-        env = "APP_SERVICE"
+        env = "SKYWRITE_APP_SERVICE"
     )]
     service: Url,
 
     /// The username or email of the application's account.
-    #[clap(required = true, long = "app-identifier", env = "APP_IDENTIFIER")]
+    #[clap(
+        required = true,
+        long = "app-identifier",
+        env = "SKYWRITE_APP_IDENTIFIER"
+    )]
     identifier: String,
 
     /// The app password to use for authentication.
-    #[clap(required = true, long = "app-password", env = "APP_PASSWORD")]
+    #[clap(required = true, long = "app-password", env = "SKYWRITE_APP_PASSWORD")]
     password: String,
 
     /// The interval of time in seconds between checking for new posts.
     #[clap(
         default_value_t = 300,
         long = "rerun-interval-seconds",
-        env = "RERUN_INTERVAL_SECONDS"
+        env = "SKYWRITE_RERUN_INTERVAL_SECONDS"
     )]
     run_interval_seconds: u64,
 
@@ -49,7 +53,7 @@ pub struct StartCommand {
     #[clap(
         default_value_t = 3,
         long = "rss-feed-backdate-hours",
-        env = "RSS_FEED_BACKDATE_HOURS"
+        env = "SKYWRITE_RSS_FEED_BACKDATE_HOURS"
     )]
     rss_feed_backdate_hours: u16,
 
@@ -57,7 +61,7 @@ pub struct StartCommand {
     #[clap(
         required = true,
         long = "rss-feed-urls",
-        env = "RSS_FEED_URLS",
+        env = "SKYWRITE_RSS_FEED_URLS",
         value_delimiter = ','
     )]
     rss_feed_urls: Vec<Url>,
@@ -66,7 +70,7 @@ pub struct StartCommand {
     #[clap(
         default_value_t = true,
         long = "disable-post-comments",
-        env = "DISABLE_POST_COMMENTS"
+        env = "SKYWRITE_DISABLE_POST_COMMENTS"
     )]
     disable_post_comments: primitive::bool,
 
@@ -76,7 +80,7 @@ pub struct StartCommand {
         required = true,
         default_value = "en",
         long = "post-languages",
-        env = "POST_LANGUAGES",
+        env = "SKYWRITE_POST_LANGUAGES",
         value_delimiter = ','
     )]
     post_languages: Vec<String>,
