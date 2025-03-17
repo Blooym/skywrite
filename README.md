@@ -60,8 +60,7 @@ docker compose up -d
 cargo install --git https://github.com/Blooym/skywrite.git
 ```
 
-3. Copy `.env.example` to `.env` and fill in the values as necessary.
-   Information about configuration options can be found in the
+3. Create a `.env` file and fill in the values as necessary using the information found in the
    [configuration](#configuration) section.
 
 4. Run the project from the same directory as `.env`
