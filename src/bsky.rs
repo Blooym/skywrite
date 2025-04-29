@@ -9,7 +9,7 @@ use bsky_sdk::{
         },
         types::{
             Collection, TryIntoUnknown, Union,
-            string::{Datetime, Language},
+            string::{Datetime, Language, RecordKey},
         },
     },
     rich_text::RichText,
@@ -124,8 +124,7 @@ impl BlueskyHandler {
                     data.uri.as_ref(),
                     data.thumbnail_url,
                 )
-                .await
-                .unwrap(),
+                .await?,
             ),
             None => None,
         };
@@ -157,10 +156,10 @@ impl BlueskyHandler {
                 record.uri
             );
 
-            let rkey = record
-                .uri
-                .rsplit_once('/')
-                .map(|(_, rkey)| rkey.to_string());
+            let rkey = record.uri.rsplit_once('/').map(|(_, rkey)| {
+                RecordKey::from_str(rkey).expect("record key from post should always be vlaid")
+            });
+
             self.agent
                 .api
                 .com
