@@ -133,7 +133,7 @@ impl ExecutableCommand for StartCommand {
                                     .find(|link| {
                                         Url::parse(&link.href)
                                             .ok()
-                                            .map_or(false, |url| url.domain() == feed.domain())
+                                            .is_some_and(|url| url.domain() == feed.domain())
                                     })
                                     .or_else(|| post.links.first());
                                 
