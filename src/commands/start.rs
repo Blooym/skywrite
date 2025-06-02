@@ -102,7 +102,7 @@ impl ExecutableCommand for StartCommand {
         let mut handles = vec![];
         for feed in self.rss_feed_urls {
             let mut rsshandler = RssHandler::new(
-                feed,
+                feed.clone(),
                 database.clone(),
                 Duration::hours(self.rss_feed_backdate_hours as i64),
             );
@@ -124,9 +124,20 @@ impl ExecutableCommand for StartCommand {
                             rsshandler.get_feed()
                         );
 
-                        match rsshandler.fetch_unposted().await { Ok(feed) => {
-                            for post in feed.entries {
-                                let Some(post_link) = post.links.first() else {
+                        match rsshandler.fetch_unposted().await { Ok(rss_feed) => {
+                            for post in rss_feed.entries {
+                                // Prefer the first post link that is from the same domain as the rss feed
+                                // failing that, use the first link.
+                                let post_link = post.links
+                                    .iter()
+                                    .find(|link| {
+                                        Url::parse(&link.href)
+                                            .ok()
+                                            .map_or(false, |url| url.domain() == feed.domain())
+                                    })
+                                    .or_else(|| post.links.first());
+                                
+                                let Some(post_link) = post_link else {
                                     debug!(
                                         "Post '{:?}' did not have any links attached, it will be skipped.",
                                         post.title
@@ -203,7 +214,7 @@ impl ExecutableCommand for StartCommand {
                                 // Post the resulting data to Bluesky and add it to the database if successful.
                                 bsky_handler.post(post_data).await.unwrap();
                                 database
-                                    .add_posted_url(&post.links.first().unwrap().href.to_string())
+                                    .add_posted_url(post_link.href.as_str())
                                     .await
                                     .unwrap();
                             }
