@@ -136,7 +136,7 @@ impl ExecutableCommand for StartCommand {
                                             .is_some_and(|url| url.domain() == feed.domain())
                                     })
                                     .or_else(|| post.links.first());
-                                
+
                                 let Some(post_link) = post_link else {
                                     debug!(
                                         "Post '{:?}' did not have any links attached, it will be skipped.",
