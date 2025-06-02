@@ -1,11 +1,11 @@
 ###########
 # Builder #
 ###########
-FROM rust:alpine AS builder 
+FROM rust:alpine3.21 AS builder 
 WORKDIR /build
 
 # Install build dependencies
-RUN apk add --update build-base cmake openssl-dev
+RUN apk add --update build-base cmake libressl-dev=4.0.0-r0
 
 # Pre-cache dependencies
 COPY ["Cargo.toml", "Cargo.lock", "./"]
