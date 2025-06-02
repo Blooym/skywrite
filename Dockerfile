@@ -5,7 +5,7 @@ FROM rust:alpine AS builder
 WORKDIR /build
 
 # Install build dependencies
-RUN apk add --update build-base cmake libressl-dev
+RUN apk add --update build-base cmake openssl-dev
 
 # Pre-cache dependencies
 COPY ["Cargo.toml", "Cargo.lock", "./"]
