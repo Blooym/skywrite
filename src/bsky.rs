@@ -1,3 +1,4 @@
+use crate::image::resize_to_aspect_ratio;
 use anyhow::{Context, Result};
 use bsky_sdk::{
     BskyAgent,
@@ -15,7 +16,8 @@ use bsky_sdk::{
     rich_text::RichText,
 };
 use chrono::{DateTime, Utc};
-use log::{debug, info};
+use image::{ImageFormat, imageops::FilterType};
+use log::{debug, info, warn};
 use reqwest::Url;
 use std::{path::PathBuf, str::FromStr};
 
@@ -205,14 +207,31 @@ impl BlueskyHandler {
         info!("Constructing external embed data for: '{uri}'");
         let thumb = if let Some(data) = thumbnail_url {
             debug!("Fetching and uploading image blob data for '{uri}'");
-            let image_bytes = reqwest::get(data).await?.bytes().await?;
+
+            // Download image and convert to 16:9.
+            let raw_image = reqwest::get(data).await?.bytes().await?;
+            let converted_image = match resize_to_aspect_ratio(
+                &raw_image,
+                16.0 / 9.0,
+                ImageFormat::WebP,
+                FilterType::Nearest,
+            ) {
+                Ok(resized_image) => resized_image,
+                Err(err) => {
+                    warn!(
+                        "Failed to convert image to a 16:9 WEBP: {err:?}. The original image will be used instead"
+                    );
+                    raw_image.to_vec()
+                }
+            };
+
             let output = self
                 .agent
                 .api
                 .com
                 .atproto
                 .repo
-                .upload_blob(image_bytes.to_vec())
+                .upload_blob(converted_image)
                 .await?;
             Some(output.data.blob)
         } else {

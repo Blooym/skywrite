@@ -1,6 +1,7 @@
 mod bsky;
 mod commands;
 mod database;
+mod image;
 mod rss;
 
 use anyhow::Result;
