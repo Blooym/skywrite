@@ -34,7 +34,7 @@ impl RssHandler {
         let content = reqwest::get(self.feed.clone()).await?.bytes().await?;
         let mut feed = feed_rs::parser::parse(&content[..])?;
         let mut new_entries = vec![];
-        for item in feed.entries {
+        for mut item in feed.entries {
             // Only count posts that are after the filter date.
             let Some(pub_date) = item.published else {
                 continue;
@@ -43,7 +43,19 @@ impl RssHandler {
                 continue;
             }
 
-            // Check for duplicate link. No link, no post.
+            // Prefer the first post link that is from the same domain as the rss feed
+            item.links.sort_by_key(|link| {
+                Url::parse(&link.href)
+                    .ok()
+                    .and_then(|url| match (url.domain(), self.feed.domain()) {
+                        (Some(link_domain), Some(feed_domain)) => Some(link_domain == feed_domain),
+                        _ => Some(false),
+                    })
+                    .unwrap_or(false)
+            });
+            item.links.reverse();
+
+            // Get the first link, if any
             let Some(link) = item.links.first() else {
                 continue;
             };

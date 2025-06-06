@@ -126,18 +126,7 @@ impl ExecutableCommand for StartCommand {
 
                         match rsshandler.fetch_unposted().await { Ok(rss_feed) => {
                             for post in rss_feed.entries {
-                                // Prefer the first post link that is from the same domain as the rss feed
-                                // failing that, use the first link.
-                                let post_link = post.links
-                                    .iter()
-                                    .find(|link| {
-                                        Url::parse(&link.href)
-                                            .ok()
-                                            .is_some_and(|url| url.domain() == feed.domain())
-                                    })
-                                    .or_else(|| post.links.first());
-
-                                let Some(post_link) = post_link else {
+                                let Some(post_link) = post.links.first() else {
                                     debug!(
                                         "Post '{:?}' did not have any links attached, it will be skipped.",
                                         post.title
@@ -216,7 +205,7 @@ impl ExecutableCommand for StartCommand {
                                 database
                                     .add_posted_url(post_link.href.as_str())
                                     .await
-                                    .unwrap();
+                                    .expect("post URL insert into database should not fail");
                             }
 
                             // Remove old posts from the database.
