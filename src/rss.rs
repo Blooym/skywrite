@@ -47,9 +47,9 @@ impl RssHandler {
             item.links.sort_by_key(|link| {
                 Url::parse(&link.href)
                     .ok()
-                    .and_then(|url| match (url.domain(), self.feed.domain()) {
-                        (Some(link_domain), Some(feed_domain)) => Some(link_domain == feed_domain),
-                        _ => Some(false),
+                    .map(|url| match (url.domain(), self.feed.domain()) {
+                        (Some(link_domain), Some(feed_domain)) => link_domain == feed_domain,
+                        _ => false,
                     })
                     .unwrap_or(false)
             });
