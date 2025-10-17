@@ -74,22 +74,15 @@ skywrite start
 Configuration is handled entirely through environment variables or command-line
 flags. The available configuration options for the 'start' command are:
 
-- `SKYWRITE_APP_SERVICE`: The full URL to the service to communicate with. Defaults to
-  `https://bsky.social`
-- `SKYWRITE_APP_IDENTIFIER`: The username or email of the application's account.
-- `SKYWRITE_APP_PASSWORD`: The app password to use for authentication.
-- `SKYWRITE_DATA_PATH`: The base directory to store things like configuration files and
-  other persistent data.
-- `DATABASE_URL`: The connection string to use when connecting to the sqlite
-  database. Supports some connection parameters.
-- `SKYWRITE_RERUN_INTERVAL_SECONDS`: The interval of time in seconds between checking for
-  new posts.
-- `SKYWRITE_RSS_FEED_BACKDATE_HOURS`: The number of hours in the past the bot should
-  check for posts that haven't been posted at startup. Useful for backdating an
-  account or when an outage occurs.
-- `SKYWRITE_RSS_FEED_URLS`: A comma-seperated list of URLs pointing directly to RSS
-  feeds.
-- `SKYWRITE_DISABLE_POST_COMMENTS`: Whether Bluesky posts should have comments disabled.
-- `SKYWRITE_POST_LANGUAGES`: A comma-seperated list of languages in **ISO-639-1** to
-  classify posts under. This should corrolate to the language of the posts the
-  feed is linking to.
+| Environment Variable               | Description                                                                                                                                                    |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SKYWRITE_APP_SERVICE`             | The full URL to the service to communicate with. Defaults to `https://bsky.social`                                                                             |
+| `SKYWRITE_APP_IDENTIFIER`          | The username or email of the application's account.                                                                                                            |
+| `SKYWRITE_APP_PASSWORD`            | The app password to use for authentication.                                                                                                                    |
+| `SKYWRITE_DATA_PATH`               | The base directory to store things like configuration files and other persistent data.                                                                         |
+| `DATABASE_URL`                     | The connection string to use when connecting to the sqlite database. Supports some connection parameters.                                                      |
+| `SKYWRITE_RERUN_INTERVAL_SECONDS`  | The interval of time in seconds between checking for new posts.                                                                                                |
+| `SKYWRITE_RSS_FEED_BACKDATE_HOURS` | The number of hours in the past the bot should check for posts that haven't been posted at startup. Useful for backdating an account or when an outage occurs. |
+| `SKYWRITE_RSS_FEED_URLS`           | A comma-separated list of URLs pointing directly to RSS feeds.                                                                                                 |
+| `SKYWRITE_DISABLE_POST_COMMENTS`   | Whether Bluesky posts should have comments disabled.                                                                                                           |
+| `SKYWRITE_POST_LANGUAGES`          | A comma-separated list of languages in **ISO-639-1** to classify posts under. This should correlate to the language of the posts the feed is linking to.       |
