@@ -27,7 +27,7 @@ impl ExecutableCommand for InsertPostsCommand {
             let url = post.as_str();
             if !database.has_posted_url(url).await? {
                 info!("Marking {url} as already posted");
-                database.add_posted_url(url).await?;
+                database.insert_posted_url(url).await?;
             } else {
                 info!("{url} is already marked as posted");
             }

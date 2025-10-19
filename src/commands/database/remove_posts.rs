@@ -27,7 +27,7 @@ impl ExecutableCommand for RemovePostsCommand {
             let url = post.as_str();
             if database.has_posted_url(url).await? {
                 info!("Removing {url} from already posted list");
-                database.remove_posted_url(url).await?;
+                database.delete_posted_url(url).await?;
             } else {
                 info!("{url} is not marked as posted");
             }

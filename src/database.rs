@@ -2,9 +2,11 @@ use anyhow::Result;
 use log::debug;
 use sqlx::{SqlitePool, migrate, query};
 
+type DatabasePool = SqlitePool;
+
 #[derive(Debug)]
 pub struct Database {
-    pool: SqlitePool,
+    pool: DatabasePool,
 }
 
 impl Database {
@@ -20,20 +22,15 @@ impl Database {
         Ok(())
     }
 
-    pub async fn add_posted_url(&self, url: &str) -> Result<()> {
-        debug!("Storing {url} in posted_urls");
-        query!("INSERT INTO posted_urls (url) VALUES (?)", url)
-            .execute(&self.pool)
-            .await?;
-        Ok(())
-    }
-
-    pub async fn remove_posted_url(&self, url: &str) -> Result<()> {
-        debug!("Removing {url} from posted_urls");
-        query!("DELETE FROM posted_urls WHERE url = ?", url)
-            .execute(&self.pool)
-            .await?;
-        Ok(())
+    pub async fn get_all_post_urls(&self) -> Result<Option<Vec<String>>> {
+        debug!("Fetching all urls in the posted_urls table");
+        let q = query!(r#"SELECT url FROM posted_urls"#)
+            .fetch_all(&self.pool)
+            .await?
+            .into_iter()
+            .map(|f| f.url)
+            .collect::<Option<Vec<String>>>();
+        Ok(q)
     }
 
     pub async fn has_posted_url(&self, url: &str) -> Result<bool> {
@@ -44,14 +41,19 @@ impl Database {
             .is_some())
     }
 
-    pub async fn get_all_post_urls(&self) -> Result<Option<Vec<String>>> {
-        debug!("Fetching all urls in the posted_urls table");
-        let q = query!(r#"SELECT url FROM posted_urls"#)
-            .fetch_all(&self.pool)
-            .await?
-            .into_iter()
-            .map(|f| f.url)
-            .collect::<Option<Vec<String>>>();
-        Ok(q)
+    pub async fn insert_posted_url(&self, url: &str) -> Result<()> {
+        debug!("Storing {url} in posted_urls");
+        query!("INSERT INTO posted_urls (url) VALUES (?)", url)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn delete_posted_url(&self, url: &str) -> Result<()> {
+        debug!("Removing {url} from posted_urls");
+        query!("DELETE FROM posted_urls WHERE url = ?", url)
+            .execute(&self.pool)
+            .await?;
+        Ok(())
     }
 }

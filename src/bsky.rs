@@ -37,13 +37,13 @@ pub struct PostEmbed {
     pub thumbnail_url: Option<Url>,
 }
 
-pub struct BlueskyHandler {
+pub struct BlueskyClient {
     pub agent: BskyAgent,
     pub data_path: PathBuf,
     pub disable_comments: bool,
 }
 
-impl BlueskyHandler {
+impl BlueskyClient {
     fn make_default_config(service: &str) -> Config {
         Config {
             endpoint: service

@@ -1,5 +1,5 @@
 use super::{ExecutableCommand, GlobalArguments};
-use crate::bsky::{BlueskyHandler, PostData, PostEmbed};
+use crate::bsky::{BlueskyClient, PostData, PostEmbed};
 use crate::database::Database;
 use crate::rss::RssHandler;
 use anyhow::{Context, Result};
@@ -88,43 +88,47 @@ pub struct StartCommand {
 
 impl ExecutableCommand for StartCommand {
     async fn run(self, global_args: GlobalArguments) -> Result<()> {
-        let database = Arc::new(Database::new(&global_args.database_url).await?);
-        let bsky_handler = Arc::new(
-            BlueskyHandler::new(
+        let bsky_client = Arc::new(
+            BlueskyClient::new(
                 self.service,
                 global_args.data_path,
                 self.disable_post_comments,
             )
             .await?,
         );
-        bsky_handler.login(&self.identifier, &self.password).await?;
+        bsky_client.login(&self.identifier, &self.password).await?;
+        let database = Arc::new(Database::new(&global_args.database_url).await?);
 
-        let mut handles = vec![];
+        // Initialise html selectors.
+        let og_description_selector = Selector::parse(r#"meta[property="og:description"]"#)
+            .expect("selector expression should be parseable");
+        let og_image_selector = Selector::parse(r#"meta[property="og:image"]"#)
+            .expect("selector expression should be parseable");
+
+        let mut handles = Vec::with_capacity(self.rss_feed_urls.len());
         for feed in self.rss_feed_urls {
-            let mut rsshandler = RssHandler::new(
-                feed.clone(),
-                database.clone(),
+            let mut rss_handler = RssHandler::new(
+                feed,
                 Duration::hours(self.rss_feed_backdate_hours as i64),
+                Arc::clone(&database),
+                Arc::new(reqwest::Client::new()),
             );
 
             handles.push(tokio::spawn({
                 let database = database.clone();
-                let bsky_handler = bsky_handler.clone();
+                let bsky_handler = bsky_client.clone();
                 let post_languages = self.post_languages.clone();
-                let og_description_selector = Selector::parse(r#"meta[property="og:description"]"#)
-                    .expect("selector expression should be parseable");
-                let og_image_selector = Selector::parse(r#"meta[property="og:image"]"#)
-                    .expect("selector expression should be parseable");
-
+                let og_description_selector = og_description_selector.clone();
+                let og_image_selector = og_image_selector.clone();
                 async move {
                     loop {
                         bsky_handler.sync_session().await.unwrap();
                         info!(
                             "Checking for unposted entries for RSS feed: {}",
-                            rsshandler.get_feed()
+                            rss_handler.feed_url()
                         );
 
-                        match rsshandler.fetch_unposted().await { Ok(rss_feed) => {
+                        match rss_handler.fetch_unposted().await { Ok(rss_feed) => {
                             for post in rss_feed.entries {
                                 let Some(post_link) = post.links.first() else {
                                     debug!(
@@ -203,7 +207,7 @@ impl ExecutableCommand for StartCommand {
                                 // Post the resulting data to Bluesky and add it to the database if successful.
                                 bsky_handler.post(post_data).await.unwrap();
                                 database
-                                    .add_posted_url(post_link.href.as_str())
+                                    .insert_posted_url(post_link.href.as_str())
                                     .await
                                     .expect("post URL insert into database should not fail");
                             }
@@ -215,7 +219,7 @@ impl ExecutableCommand for StartCommand {
                         } _ => {
                             error!(
                                 "Failed to fetch feed {}: skipping for this iteration",
-                                rsshandler.get_feed()
+                                rss_handler.feed_url()
                             );
                         }};
 
